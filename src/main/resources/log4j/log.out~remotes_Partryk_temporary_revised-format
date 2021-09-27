@@ -1,0 +1,272 @@
+20-03-25 17:18:30:752  INFO AWT-EventQueue-0 common.Version:37 - HCANN000001: Hibernate Commons Annotations {4.0.1.Final}
+20-03-25 17:18:30:760  INFO AWT-EventQueue-0 hibernate.Version:41 - HHH000412: Hibernate Core {4.1.10.Final}
+20-03-25 17:18:30:761  INFO AWT-EventQueue-0 cfg.Environment:239 - HHH000206: hibernate.properties not found
+20-03-25 17:18:30:763  INFO AWT-EventQueue-0 cfg.Environment:342 - HHH000021: Bytecode provider name : javassist
+20-03-25 17:18:31:065  INFO AWT-EventQueue-0 dialect.Dialect:127 - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+20-03-25 17:18:31:083  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:182 - HHH000228: Running hbm2ddl schema update
+20-03-25 17:18:31:084  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:193 - HHH000102: Fetching database metadata
+20-03-25 17:18:31:116  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:96 - HHH000402: Using Hibernate built-in connection pool (not for production use!)
+20-03-25 17:18:31:118  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:130 - HHH000115: Hibernate connection pool size: 20
+20-03-25 17:18:31:119  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:133 - HHH000006: Autocommit mode: true
+20-03-25 17:18:31:119  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:147 - HHH000401: using driver [org.h2.Driver] at URL [jdbc:h2:output/\20200325171830\database\out]
+20-03-25 17:18:31:119  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:152 - HHH000046: Connection properties: {user=sa, password=****, autocommit=true, release_mode=auto}
+20-03-25 17:18:31:395  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:205 - HHH000396: Updating schema
+20-03-25 17:18:31:577  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorHousehold
+20-03-25 17:18:31:582  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorPerson
+20-03-25 17:18:31:583  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Household
+20-03-25 17:18:31:585  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Person
+20-03-25 17:18:31:586  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Statistics
+20-03-25 17:18:31:587  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment
+20-03-25 17:18:31:587  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment_parameter
+20-03-25 17:18:31:588  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorHousehold
+20-03-25 17:18:31:589  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorPerson
+20-03-25 17:18:31:589  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Household
+20-03-25 17:18:31:590  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Person
+20-03-25 17:18:31:590  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Statistics
+20-03-25 17:18:31:590  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment
+20-03-25 17:18:31:591  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment_parameter
+20-03-25 17:18:31:606  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:240 - HHH000232: Schema update complete
+20-03-25 17:18:31:606  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:156 - HHH000030: Cleaning up connection pool [jdbc:h2:output/\20200325171830\database\out]
+20-03-25 17:18:31:850  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:851  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:851  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:852  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:852  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:852  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:853  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:853  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:854  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:854  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:31:858  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:96 - HHH000402: Using Hibernate built-in connection pool (not for production use!)
+20-03-25 17:18:31:858  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:130 - HHH000115: Hibernate connection pool size: 20
+20-03-25 17:18:31:858  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:133 - HHH000006: Autocommit mode: true
+20-03-25 17:18:31:859  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:147 - HHH000401: using driver [org.h2.Driver] at URL [jdbc:h2:output/\20200325171830\database\out]
+20-03-25 17:18:31:859  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:152 - HHH000046: Connection properties: {user=sa, password=****, autocommit=true, release_mode=auto}
+20-03-25 17:18:32:013  INFO AWT-EventQueue-0 dialect.Dialect:127 - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+20-03-25 17:18:32:033  INFO AWT-EventQueue-0 internal.TransactionFactoryInitiator:73 - HHH000268: Transaction strategy: org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory
+20-03-25 17:18:32:038  INFO AWT-EventQueue-0 ast.ASTQueryTranslatorFactory:48 - HHH000397: Using ASTQueryTranslatorFactory
+20-03-25 17:18:32:292  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:182 - HHH000228: Running hbm2ddl schema update
+20-03-25 17:18:32:293  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:193 - HHH000102: Fetching database metadata
+20-03-25 17:18:32:293  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:205 - HHH000396: Updating schema
+20-03-25 17:18:32:299  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.DONORHOUSEHOLD
+20-03-25 17:18:32:300  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [idmale, d_children_13_17, d_children_7_12, simulation_time, d_children_3under, d_children_3_6, d_children_4_12, size, d_children_2under, id, idfemale, region, simulation_run]
+20-03-25 17:18:32:300  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:32:300  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_7]
+20-03-25 17:18:32:303  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.DONORPERSON
+20-03-25 17:18:32:304  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [education, idmother, gender, earnings_monthly, health, idhh, simulation_time, hourly_wage, idpartner, idfather, id, hours_worked_weekly, original_income_monthly, work_sector, simulation_run, activity_status, age]
+20-03-25 17:18:32:304  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:32:305  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_a]
+20-03-25 17:18:32:309  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.HOUSEHOLD
+20-03-25 17:18:32:309  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [at_risk_of_poverty, occupancy, idmale, n_children_age10, equivalised_household_disposable_income_monthly, n_children_age14, n_children_age13, n_children_age12, household_weight, n_children_age11, n_children_age17, n_children_age16, n_children_age15, id, simulation_run, n_children_age9, n_children_age8, n_children_age1, n_children_age0, n_children_age3, n_children_age2, simulation_time, n_children_age5, n_children_age4, n_children_age7, n_children_age6, disposable_household_income_monthly, size, idfemale, region]
+20-03-25 17:18:32:309  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:32:309  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_e]
+20-03-25 17:18:32:312  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.PERSON
+20-03-25 17:18:32:312  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [education, idmother, gender, health, idhh, simulation_time, idpartner, person_weight, idfather, originalhhid, household_status, unit_labour_cost, labour_supply_weekly, potential_earnings_hourly, id, originalid, work_sector, simulation_run, activity_status, age]
+20-03-25 17:18:32:312  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:32:313  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_8]
+20-03-25 17:18:32:316  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.STATISTICS
+20-03-25 17:18:32:316  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [gini_coefficient_equivalised_household_disposable_income_nationally, median_equivalised_household_disposable_income, id, simulation_time, gini_coefficient_individual_market_income_nationally, simulation_run]
+20-03-25 17:18:32:316  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:32:316  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_1]
+20-03-25 17:18:32:318  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.JASMINE_EXPERIMENT
+20-03-25 17:18:32:318  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [run_id, time_stamp, multi_run_id, id]
+20-03-25 17:18:32:318  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:32:318  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_f]
+20-03-25 17:18:32:321  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.JASMINE_EXPERIMENT_PARAMETER
+20-03-25 17:18:32:321  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [experiment_id, name, id, value]
+20-03-25 17:18:32:321  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: [fk9b4727b76fc95321]
+20-03-25 17:18:32:321  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_4, fk9b4727b76fc95321_index_4]
+20-03-25 17:18:32:322  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:240 - HHH000232: Schema update complete
+20-03-25 17:18:39:436  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:436  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:436  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:436  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:437  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:437  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:437  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:437  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:438  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:438  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-03-25 17:18:39:438  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:96 - HHH000402: Using Hibernate built-in connection pool (not for production use!)
+20-03-25 17:18:39:438  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:130 - HHH000115: Hibernate connection pool size: 20
+20-03-25 17:18:39:439  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:133 - HHH000006: Autocommit mode: true
+20-03-25 17:18:39:439  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:147 - HHH000401: using driver [org.h2.Driver] at URL [jdbc:h2:output/\20200325171830\input\input]
+20-03-25 17:18:39:439  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:152 - HHH000046: Connection properties: {user=sa, password=****, autocommit=true, release_mode=auto}
+20-03-25 17:18:39:741  INFO AWT-EventQueue-0 dialect.Dialect:127 - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+20-03-25 17:18:39:742  INFO AWT-EventQueue-0 internal.TransactionFactoryInitiator:73 - HHH000268: Transaction strategy: org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory
+20-03-25 17:18:39:742  INFO AWT-EventQueue-0 ast.ASTQueryTranslatorFactory:48 - HHH000397: Using ASTQueryTranslatorFactory
+20-03-25 17:18:39:768  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:182 - HHH000228: Running hbm2ddl schema update
+20-03-25 17:18:39:769  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:193 - HHH000102: Fetching database metadata
+20-03-25 17:18:39:769  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:205 - HHH000396: Updating schema
+20-03-25 17:18:39:774  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.DONORHOUSEHOLD
+20-03-25 17:18:39:774  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [household_weight, id, simulation_time, region, simulation_run]
+20-03-25 17:18:39:775  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:39:775  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-03-25 17:18:39:777  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.DONORPERSON
+20-03-25 17:18:39:777  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [country, idmother, education, gender, employment_income, earnings_monthly, idpartner, person_weight, idfather, disposable_income_monthly_uk_2016_std, employer_social_insurance_contribution_per_hour_uk_2015_e7_std, id, hours_worked_weekly, original_income_monthly, simulation_run, disposable_income_monthly_uk_2015_e7_std, health, idhh, simulation_time, hourly_wage, employer_social_insurance_contribution_per_hour_uk_2016_std, self_employment_income, work_sector, age, activity_status]
+20-03-25 17:18:39:777  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:39:778  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-03-25 17:18:39:779  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.HOUSEHOLD
+20-03-25 17:18:39:779  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [household_weight, size, id, simulation_time, region, simulation_run]
+20-03-25 17:18:39:779  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:39:779  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-03-25 17:18:39:781  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.PERSON
+20-03-25 17:18:39:781  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [education_father, country, idmother, education, gender, health, idhh, simulation_time, idpartner, person_weight, education_mother, idfather, unit_labour_cost, potential_earnings_hourly, id, hours_worked_weekly, work_sector, age, simulation_run, activity_status]
+20-03-25 17:18:39:781  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:39:781  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-03-25 17:18:39:784  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.STATISTICS
+20-03-25 17:18:39:784  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [gini_coefficient_equivalised_household_disposable_income_nationally, median_equivalised_household_disposable_income, id, simulation_time, gini_coefficient_individual_market_income_nationally, simulation_run]
+20-03-25 17:18:39:784  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-03-25 17:18:39:785  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_1]
+20-03-25 17:18:43:379  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:240 - HHH000232: Schema update complete
+20-03-25 17:18:53:124  INFO AWT-EventQueue-0 model.LABSimModel:2917 - Number of simulated individuals (persons.size()) is 5000 living in 2884 simulated households.
+20-03-25 17:18:53:124  INFO AWT-EventQueue-0 model.LABSimModel:2918 - Representative size of population is 9345676.0 living in 2884.0 representative households.
+20-03-25 17:18:54:762 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:763 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:764 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:765 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:766 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:766 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:766 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:766 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:766 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:766 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:772 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:773 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:773 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:773 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:773 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:773 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:774 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:775 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:776 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:776 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:776 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:776 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:777 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-03-25 17:18:54:785 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-03-25 17:18:54:789 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getEquivalisedDisposableIncomeYearly of object null must return a double value!
+20-03-25 17:18:57:965  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:18:58:020  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:18:58:028  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:18:58:207  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:18:58:219  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:18:59:286  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:18:59:286  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2015
+20-03-25 17:18:59:354  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:18:59:403  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:18:59:407  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:18:59:467  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:18:59:473  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:19:00:724  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:19:00:725  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2016
+20-03-25 17:19:00:780  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:19:00:813  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:19:00:816  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:19:00:874  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:19:00:879  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:19:02:144  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:19:02:144  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2017
+20-03-25 17:19:02:178  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:19:02:208  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:19:02:211  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:19:02:268  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:19:02:273  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:19:03:600  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:19:03:600  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2018
+20-03-25 17:19:03:634  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:19:03:660  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:19:03:664  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:19:03:724  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:19:03:728  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:19:05:123  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:19:05:123  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2019
+20-03-25 17:19:05:168  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:19:05:196  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:19:05:198  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:19:05:261  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:19:05:264  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:19:06:650  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:19:06:650  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2020
+20-03-25 17:19:06:684  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:21:28:847  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:21:28:852  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:21:28:957  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:21:28:982  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:21:30:986  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:21:30:987  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2021
+20-03-25 17:21:31:074  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:21:31:097  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:21:31:100  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:21:31:165  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:21:31:169  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:21:32:770  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:21:32:770  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2022
+20-03-25 17:21:32:803  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:21:32:837  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:21:32:840  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:21:32:901  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:21:32:904  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:21:34:298  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:21:34:298  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2023
+20-03-25 17:21:34:329  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:21:34:349  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:21:34:353  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:21:34:420  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:21:34:422  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:21:35:797  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:21:35:797  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2024
+20-03-25 17:21:35:826  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:21:35:850  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:21:35:854  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:21:35:925  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:21:35:928  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:21:37:295  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:21:37:295  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2025
+20-03-25 17:21:37:333  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.
+20-03-25 17:21:37:359  INFO Thread-2 model.LABSimModel:454 - Population alignment complete.
+20-03-25 17:21:37:361  INFO Thread-2 model.LABSimModel:458 - Health alignment complete.
+20-03-25 17:21:37:448  INFO Thread-2 model.LABSimModel:466 - Union matching complete.
+20-03-25 17:21:37:451  INFO Thread-2 model.LABSimModel:470 - Fertility alignment complete.
+20-03-25 17:21:38:886  INFO Thread-2 model.LABSimModel:474 - Labour market update complete.
+20-03-25 17:21:38:886  INFO Thread-2 model.LABSimModel:488 - It's the New Year's Eve of 2026
+20-03-25 17:21:38:923  INFO Thread-2 model.LABSimModel:485 - Update Parameters Complete.

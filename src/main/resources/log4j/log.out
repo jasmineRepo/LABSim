@@ -1,0 +1,197 @@
+20-09-01 18:35:54:896  INFO AWT-EventQueue-0 common.Version:37 - HCANN000001: Hibernate Commons Annotations {4.0.1.Final}
+20-09-01 18:35:54:908  INFO AWT-EventQueue-0 hibernate.Version:41 - HHH000412: Hibernate Core {4.1.10.Final}
+20-09-01 18:35:54:909  INFO AWT-EventQueue-0 cfg.Environment:239 - HHH000206: hibernate.properties not found
+20-09-01 18:35:54:910  INFO AWT-EventQueue-0 cfg.Environment:342 - HHH000021: Bytecode provider name : javassist
+20-09-01 18:35:55:156  INFO AWT-EventQueue-0 dialect.Dialect:127 - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+20-09-01 18:35:55:169  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:182 - HHH000228: Running hbm2ddl schema update
+20-09-01 18:35:55:169  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:193 - HHH000102: Fetching database metadata
+20-09-01 18:35:55:188  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:96 - HHH000402: Using Hibernate built-in connection pool (not for production use!)
+20-09-01 18:35:55:191  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:130 - HHH000115: Hibernate connection pool size: 20
+20-09-01 18:35:55:191  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:133 - HHH000006: Autocommit mode: true
+20-09-01 18:35:55:191  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:147 - HHH000401: using driver [org.h2.Driver] at URL [jdbc:h2:output/\20200901183553\database\out]
+20-09-01 18:35:55:192  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:152 - HHH000046: Connection properties: {password=****, autocommit=true, release_mode=auto, user=sa}
+20-09-01 18:35:55:358  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:205 - HHH000396: Updating schema
+20-09-01 18:35:55:495  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorHousehold
+20-09-01 18:35:55:500  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorPerson
+20-09-01 18:35:55:500  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Household
+20-09-01 18:35:55:502  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Person
+20-09-01 18:35:55:503  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Statistics
+20-09-01 18:35:55:504  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment
+20-09-01 18:35:55:505  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment_parameter
+20-09-01 18:35:55:506  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorHousehold
+20-09-01 18:35:55:506  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: DonorPerson
+20-09-01 18:35:55:507  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Household
+20-09-01 18:35:55:508  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Person
+20-09-01 18:35:55:508  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: Statistics
+20-09-01 18:35:55:510  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment
+20-09-01 18:35:55:510  INFO AWT-EventQueue-0 sql.DatabaseMetaData:120 - HHH000262: Table not found: jasmine_experiment_parameter
+20-09-01 18:35:55:524  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:240 - HHH000232: Schema update complete
+20-09-01 18:35:55:524  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:156 - HHH000030: Cleaning up connection pool [jdbc:h2:output/\20200901183553\database\out]
+20-09-01 18:35:55:569  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:569  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:569  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:569  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:569  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:570  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:570  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:570  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:571  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:571  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:35:55:573  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:96 - HHH000402: Using Hibernate built-in connection pool (not for production use!)
+20-09-01 18:35:55:573  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:130 - HHH000115: Hibernate connection pool size: 20
+20-09-01 18:35:55:574  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:133 - HHH000006: Autocommit mode: true
+20-09-01 18:35:55:574  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:147 - HHH000401: using driver [org.h2.Driver] at URL [jdbc:h2:output/\20200901183553\database\out]
+20-09-01 18:35:55:575  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:152 - HHH000046: Connection properties: {password=****, autocommit=true, release_mode=auto, user=sa}
+20-09-01 18:35:55:640  INFO AWT-EventQueue-0 dialect.Dialect:127 - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+20-09-01 18:35:55:649  INFO AWT-EventQueue-0 internal.TransactionFactoryInitiator:73 - HHH000268: Transaction strategy: org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory
+20-09-01 18:35:55:653  INFO AWT-EventQueue-0 ast.ASTQueryTranslatorFactory:48 - HHH000397: Using ASTQueryTranslatorFactory
+20-09-01 18:35:56:208  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:182 - HHH000228: Running hbm2ddl schema update
+20-09-01 18:35:56:208  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:193 - HHH000102: Fetching database metadata
+20-09-01 18:35:56:209  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:205 - HHH000396: Updating schema
+20-09-01 18:35:56:215  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.DONORHOUSEHOLD
+20-09-01 18:35:56:216  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [idmale, d_children_13_17, d_children_7_12, simulation_time, d_children_3under, d_children_3_6, d_children_4_12, size, d_children_2under, id, idfemale, region, simulation_run]
+20-09-01 18:35:56:216  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:35:56:216  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_7]
+20-09-01 18:35:56:220  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.DONORPERSON
+20-09-01 18:35:56:221  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [education, idmother, earnings_monthly, health, dgn, idhh, dag, simulation_time, hourly_wage, idpartner, idfather, id, hours_worked_weekly, original_income_monthly, simulation_run, activity_status]
+20-09-01 18:35:56:221  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:35:56:221  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_a]
+20-09-01 18:35:56:226  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.HOUSEHOLD
+20-09-01 18:35:56:226  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [at_risk_of_poverty, ydses_c5, occupancy, idmale, n_children_age10, n_children_age14, n_children_age13, n_children_age12, household_weight, n_children_age11, n_children_age17, n_children_age16, n_children_age15, id, simulation_run, n_children_age9, n_children_age8, n_children_age1, n_children_age0, equivalised_household_disposable_income_yearly, n_children_age3, n_children_age2, simulation_time, n_children_age5, n_children_age4, n_children_age7, n_children_age6, disposable_household_income_monthly, size, dhhtp_c4, idfemale, region]
+20-09-01 18:35:56:227  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:35:56:227  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_e]
+20-09-01 18:35:56:235  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.PERSON
+20-09-01 18:35:56:235  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [dehf_c3, ded, yplgrs_dv, idmother, education_inrange, sedex, dgn, dag, deh_c3, idpartner, dcpagdf, dhesp, person_weight, der, idfather, originalhhid, dcpen, household_status, women_fertility, id, hours_worked_weekly, originalid, dcpst, simulation_run, dcpyy, activity_status_partner, dehsp_c3, dhe, partnership_samesex, les_c3, dlltsd, idhh, dcpex, simulation_time, ypnbihs_dv, lesdf_c4, labour_supply_weekly, potential_earnings_hourly, yptciihs_dv, dehm_c3, ynbcpdf_dv]
+20-09-01 18:35:56:235  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:35:56:236  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_8]
+20-09-01 18:35:56:238  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.STATISTICS
+20-09-01 18:35:56:238  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [gini_coefficient_equivalised_household_disposable_income_nationally, ydses_p20, ydses_p60, ydses_p40, median_equivalised_household_disposable_income, ydses_p80, id, simulation_time, gini_coefficient_individual_market_income_nationally, simulation_run]
+20-09-01 18:35:56:238  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:35:56:239  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_1]
+20-09-01 18:35:56:241  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.JASMINE_EXPERIMENT
+20-09-01 18:35:56:241  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [run_id, time_stamp, multi_run_id, id]
+20-09-01 18:35:56:241  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:35:56:241  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_f]
+20-09-01 18:35:56:246  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: OUT.PUBLIC.JASMINE_EXPERIMENT_PARAMETER
+20-09-01 18:35:56:246  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [experiment_id, name, id, value]
+20-09-01 18:35:56:246  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: [fk9b4727b76fc95321]
+20-09-01 18:35:56:247  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_4, fk9b4727b76fc95321_index_4]
+20-09-01 18:35:56:247  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:240 - HHH000232: Schema update complete
+20-09-01 18:36:03:003  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:004  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:004  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:004  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:005  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:005  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:005  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:006  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:006  WARN AWT-EventQueue-0 mapping.RootClass:288 - HHH000038: Composite-id class does not override equals(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:007  WARN AWT-EventQueue-0 mapping.RootClass:289 - HHH000039: Composite-id class does not override hashCode(): microsim.data.db.PanelEntityKey
+20-09-01 18:36:03:007  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:96 - HHH000402: Using Hibernate built-in connection pool (not for production use!)
+20-09-01 18:36:03:007  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:130 - HHH000115: Hibernate connection pool size: 20
+20-09-01 18:36:03:007  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:133 - HHH000006: Autocommit mode: true
+20-09-01 18:36:03:008  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:147 - HHH000401: using driver [org.h2.Driver] at URL [jdbc:h2:output/\20200901183553\input\input]
+20-09-01 18:36:03:008  INFO AWT-EventQueue-0 internal.DriverManagerConnectionProviderImpl:152 - HHH000046: Connection properties: {password=****, autocommit=true, release_mode=auto, user=sa}
+20-09-01 18:36:03:059  INFO AWT-EventQueue-0 dialect.Dialect:127 - HHH000400: Using dialect: org.hibernate.dialect.H2Dialect
+20-09-01 18:36:03:060  INFO AWT-EventQueue-0 internal.TransactionFactoryInitiator:73 - HHH000268: Transaction strategy: org.hibernate.engine.transaction.internal.jdbc.JdbcTransactionFactory
+20-09-01 18:36:03:060  INFO AWT-EventQueue-0 ast.ASTQueryTranslatorFactory:48 - HHH000397: Using ASTQueryTranslatorFactory
+20-09-01 18:36:03:079  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:182 - HHH000228: Running hbm2ddl schema update
+20-09-01 18:36:03:080  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:193 - HHH000102: Fetching database metadata
+20-09-01 18:36:03:080  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:205 - HHH000396: Updating schema
+20-09-01 18:36:03:084  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.DONORHOUSEHOLD
+20-09-01 18:36:03:084  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [household_weight, id, simulation_time, region, simulation_run]
+20-09-01 18:36:03:084  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:36:03:084  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-09-01 18:36:03:087  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.DONORPERSON
+20-09-01 18:36:03:087  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [country, idmother, education, employment_income, earnings_monthly, employer_social_insurance_contribution_per_hour_uk_2015_std, disposable_income_monthly_uk_2019_std, dgn, dag, idpartner, disposable_income_monthly_uk_2015_std, person_weight, idfather, employer_social_insurance_contribution_per_hour_uk_2019_std, id, hours_worked_weekly, original_income_monthly, simulation_run, health, idhh, simulation_time, hourly_wage, self_employment_income, work_sector, activity_status]
+20-09-01 18:36:03:087  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:36:03:088  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-09-01 18:36:03:090  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.HOUSEHOLD
+20-09-01 18:36:03:091  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [household_weight, ydses_c5, size, id, simulation_time, region, dhhtp_c4, simulation_run]
+20-09-01 18:36:03:091  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:36:03:091  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-09-01 18:36:03:094  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.PERSON
+20-09-01 18:36:03:094  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [country, dehf_c3, yplgrs_dv, ded, idmother, education_inrange, sedex, age_partner, system_wave, dgn, dag, system_year, deh_c3, idpartner, dhesp, dcpagdf, person_weight, der, idfather, dcpen, women_fertility, dnc, id, hours_worked_weekly, dcpst, dcpyy, simulation_run, activity_status_partner, dhe, dehsp_c3, partnership_samesex, les_c3, dlltsd, idhh, dcpex, simulation_time, dnc02, ypnbihs_dv, lesdf_c4, potential_earnings_hourly, yptciihs_dv, dehm_c3, work_sector, ynbcpdf_dv]
+20-09-01 18:36:03:095  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:36:03:095  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: []
+20-09-01 18:36:03:098  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:65 - HHH000261: Table found: INPUT.PUBLIC.STATISTICS
+20-09-01 18:36:03:098  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:66 - HHH000037: Columns: [gini_coefficient_equivalised_household_disposable_income_nationally, median_equivalised_household_disposable_income, id, simulation_time, gini_coefficient_individual_market_income_nationally, simulation_run]
+20-09-01 18:36:03:098  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:68 - HHH000108: Foreign keys: []
+20-09-01 18:36:03:099  INFO AWT-EventQueue-0 hbm2ddl.TableMetadata:69 - HHH000126: Indexes: [primary_key_1]
+20-09-01 18:36:06:214  INFO AWT-EventQueue-0 hbm2ddl.SchemaUpdate:240 - HHH000232: Schema update complete
+20-09-01 18:36:10:815  INFO AWT-EventQueue-0 model.LABSimModel:2762 - Number of simulated individuals (persons.size()) is 10003 living in 5643 simulated households.
+20-09-01 18:36:10:819  INFO AWT-EventQueue-0 model.LABSimModel:2763 - Representative size of population is 1.6588688E7 living in 5642.0 representative households.
+20-09-01 18:47:15:825 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:825 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:826 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:826 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:827 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:827 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:828 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:828 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:828 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:828 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getDhe of object null must return a double value!
+20-09-01 18:47:15:927 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:928 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:929 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:929 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:929 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:929 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:929 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:930 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:930 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:930 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:930 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:930 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:930 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:931 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:931 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:931 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:931 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:931 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:932 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:932 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:932 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:932 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:932 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:932 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:933 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:933 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:933 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:933 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:933 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:933 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:934 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:934 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:934 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:934 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:934 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:934 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:945 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:947 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:947 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:947 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:947 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:948 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:948 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:948 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:948 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:949 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:949 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:949 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:949 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:950 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:950 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:950 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:951 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:951 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:951 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:951 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:951 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:952 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:952 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:952 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:953 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:954 ERROR AWT-EventQueue-0 reflectors.IntegerInvoker:111 - IntegerInvoker: Method getAtRiskOfPoverty of object null must return an integer value!
+20-09-01 18:47:15:967 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getGrossEarningsYearly of object null must return a double value!
+20-09-01 18:47:15:974 ERROR AWT-EventQueue-0 reflectors.DoubleInvoker:112 - DoubleInvoker: Method getEquivalisedDisposableIncomeYearly of object null must return a double value!
