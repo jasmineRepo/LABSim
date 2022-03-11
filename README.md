@@ -3,6 +3,7 @@ by Matteo Richiardi and Patryk Bronka, earlier contributions by Ross Richardson,
 
 We currently provide the following country specific models:
   1. LABSim model for Italy can be found in main_Italy branch
+  2. LABSim model for the United Kingdom in main_UK branch
 
 Please note that while we share all the code open-source, we are unable to provide data required to run the model, due to access restrictions imposed by the data owners. Please contact us to discuss access to the input data for the model. 
 
