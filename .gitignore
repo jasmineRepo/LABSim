@@ -1,3 +1,4 @@
 /target/
 /output/
 /classes/
+src/main/resources/log4j/log.out

@@ -432,9 +432,8 @@ public class LabourMarket {
 			}
 		}
 
-
-		System.out.println("Finished year " + year);
 	}
+		System.out.println("Finished year " + year);
 }
 	
 

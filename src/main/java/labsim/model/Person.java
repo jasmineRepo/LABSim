@@ -343,7 +343,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	@Transient
 	private double desiredEarningsPotentialDiff;
 
-	@Transient
+	@Column(name="original_id_person")
 	private Long id_original;
 
 	@Transient
@@ -403,7 +403,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	@Column(name = "covidModuleBaselinePayXt5")
 	private Quintiles covidModuleGrossLabourIncomeBaseline_Xt5;
 
-  @Transient
+    @Transient
 	private Double wageRegressionRandomComponent = null;
 	
 	//TODO: Remove when no longer needed.  Used to calculate mean score of employment selection regression.
@@ -528,7 +528,17 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		this.dcpagdf = originalPerson.dcpagdf;
 		this.household_status = originalPerson.household_status;
 		this.household_status_lag = originalPerson.household_status_lag;
-		this.les_c4 = originalPerson.les_c4;
+		if (originalPerson.les_c4 != null) {
+			this.les_c4 = originalPerson.les_c4;
+		} else if (originalPerson.dag < Parameters.MIN_AGE_TO_LEAVE_EDUCATION) {
+			this.les_c4 = Les_c4.Student;
+		} else if (originalPerson.dag > Parameters.getFixedRetireAge(model.getYear(), originalPerson.getDgn())) {
+			this.les_c4 = Les_c4.Retired;
+		} else if (originalPerson.getLabourSupplyWeekly() != null && originalPerson.getLabourSupplyWeekly().getHours() > 0) {
+			this.les_c4 = Les_c4.EmployedOrSelfEmployed;
+		} else {
+			this.les_c4 = Les_c4.NotEmployed;
+		}
 
 		if (originalPerson.les_c4_lag1 != null) { //If original persons misses lagged activity status, assign current activity status
 			this.les_c4_lag1 = originalPerson.les_c4_lag1;
@@ -723,7 +733,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		
 		
 		if (!model.isUseWeights()) {
-			labourSupplyWeekly = Labour.convertHoursToLabour(model.getInitialHoursWorkedWeekly().get(id_original).intValue(), getDgn()); //TODO: Why is this initialised in this way instead of the simpler commented out way below?
+			labourSupplyWeekly = Labour.convertHoursToLabour(model.getInitialHoursWorkedWeekly().get(id_original).intValue(), getDgn());
 		} else {
 			labourSupplyWeekly = Labour.convertHoursToLabour(model.getInitialHoursWorkedWeekly().get(key.getId()).intValue(), getDgn());
 		}
@@ -3714,4 +3724,6 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	public double getEquivalisedDisposableIncomeYearly() {
 		return benefitUnit.getEquivalisedDisposableIncomeYearly();
 	}
+
+	public double getDisposableIncomeMonthly() { return benefitUnit.getDisposableIncomeMonthly();}
 }

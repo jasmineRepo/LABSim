@@ -117,7 +117,7 @@ public class Household implements EventListener, IDoubleSource {
     //Add a benefitUnit to the household
     public void addBenefitUnitToHousehold(BenefitUnit benefitUnit) {
         benefitUnitsInHouseholdSet.add(benefitUnit);
-        // TODO: Benefit Units should contained in the household should update their size here. Or in BU constructors, it should change size
+        // TODO: Benefit Units contained in the household should update their size here. Or in BU constructors, it should change size
         size = size + benefitUnit.getSize();
 
         //Whenever a benefit unit is added to household, update occupants household id to match the household

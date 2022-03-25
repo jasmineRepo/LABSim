@@ -236,8 +236,8 @@ public class Parameters {
 	public static final int MIN_AGE_FLEXIBLE_LABOUR_SUPPLY = 16; //Used when filtering people who can be "flexible in labour supply"
 	public static final int MAX_AGE_FLEXIBLE_LABOUR_SUPPLY = 75;
 	public static final int MIN_DIFFERENCE_AGE_MOTHER_CHILD_IN_ALIGNMENT = 15; //When assigning chidlren to mothers in the population alignment, specify how much older (at the minimum) the mother must be than the child
-	public static final int MAX_EM_DONOR_RATIO = 2; // Used by BenefitUnit => convertGrossToDisposable() to decide whether gross-to-net ratio should be applied or disposable income from the donor used directly
-	public static final double PERCENTAGE_OF_MEDIAN_EM_DONOR = 0.1; // Used by BenefitUnit => convertGrossToDisposable() to decide whether gross-to-net ratio should be applied or disposable income from the donor used directly
+	public static final int MAX_EM_DONOR_RATIO = 3; // Used by BenefitUnit => convertGrossToDisposable() to decide whether gross-to-net ratio should be applied or disposable income from the donor used directly
+	public static final double PERCENTAGE_OF_MEDIAN_EM_DONOR = 0.2; // Used by BenefitUnit => convertGrossToDisposable() to decide whether gross-to-net ratio should be applied or disposable income from the donor used directly
 
 	//Initial value for the savings rate and multiplier for capital income:
 	public static double SAVINGS_RATE; //This is set in the country-specific part of this file

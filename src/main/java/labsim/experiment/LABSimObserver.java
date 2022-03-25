@@ -1324,7 +1324,6 @@ public class LABSimObserver extends AbstractSimulationObserverManager implements
 		    }
 
 
-			/*
 			if (incomeHistograms) {
 				TimeSeriesSimulationPlotter EDIByGenderAndEducationPlotter;
 				int colorCounter = 0;
@@ -1353,7 +1352,51 @@ public class LABSimObserver extends AbstractSimulationObserverManager implements
 				updateChartSet.add(EDIByGenderAndEducationPlotter);
 				tabSet.add(EDIByGenderAndEducationPlotter);
 			}
-			 */
+
+			if (incomeHistograms) {
+				TimeSeriesSimulationPlotter DispIncByGenderAndEducationPlotter;
+				int colorCounter = 0;
+				if (model.getCountry().equals(Country.UK)) {
+					DispIncByGenderAndEducationPlotter = new TimeSeriesSimulationPlotter("Disp income by Gender And Education", "£");
+				}
+				else {
+					DispIncByGenderAndEducationPlotter = new TimeSeriesSimulationPlotter("Disp income by Gender And Education", "Euro");
+				}
+				for(Education edu: Education.values()) {
+					for (Gender gender : Gender.values()) {
+						GenderEducationWorkingCSfilter genderEducationWorkingFilter = new GenderEducationWorkingCSfilter(gender, edu);
+						Weighted_CrossSection.Double DispIncWorkingCS = new Weighted_CrossSection.Double(model.getPersons(), Person.class, "getDisposableIncomeMonthly", true); // Note: these are nominal values for each simulated year
+						DispIncWorkingCS.setFilter(genderEducationWorkingFilter);
+						GenderEducationCSfilter genderEducationCSfilter = new GenderEducationCSfilter(gender, edu);
+						Weighted_CrossSection.Double DispIncAllCS = new Weighted_CrossSection.Double(model.getPersons(), Person.class, "getDisposableIncomeMonthly", true); // Note: these are nominal values for each simulated year
+						DispIncAllCS.setFilter(genderEducationCSfilter);
+						DispIncByGenderAndEducationPlotter.addSeries("Workers (" + gender.toString() + ", " + edu.toString() + ")", new Weighted_MeanArrayFunction(DispIncWorkingCS), null, colorArrayList.get(colorCounter), false);
+						colorCounter++;
+						DispIncByGenderAndEducationPlotter.addSeries("All (" + gender.toString() + ", " + edu.toString() + ")", new Weighted_MeanArrayFunction(DispIncAllCS), null, colorArrayList.get(colorCounter), false);
+						//					EDIByGenderAndEducationPlotter.addSeries("Validation (" + gender + ", " + edu + ")", validator, Validator.DoublesVariables.valueOf("grossEarnings_"+ gender +"_"+ edu), colorArrayList.get(colorCounter), true);
+						colorCounter++;
+					}
+				}
+				DispIncByGenderAndEducationPlotter.setName("Disp income by Gender / Education");
+				updateChartSet.add(DispIncByGenderAndEducationPlotter);
+				tabSet.add(DispIncByGenderAndEducationPlotter);
+			}
+
+			if (incomeHistograms) {
+				/*
+				Note that the variable isDisposableIncomeMonthlyImputedFlag is set to false at the beginning of each year, so this statistic reflects imputations done in a given year
+				 */
+				TimeSeriesSimulationPlotter ratioVsImputedConversionPlotter;
+				int colorCounter = 0;
+				ratioVsImputedConversionPlotter = new TimeSeriesSimulationPlotter("Share of BUs with imputed income", "Share");
+				Weighted_CrossSection.Double imputedCS = new Weighted_CrossSection.Double(model.getBenefitUnits(), BenefitUnit.class, "isDisposableIncomeMonthlyImputedFlag", true);
+				ratioVsImputedConversionPlotter.addSeries("Share imputed", new Weighted_MeanArrayFunction(imputedCS), null, colorArrayList.get(colorCounter), false);
+				colorCounter++;
+				ratioVsImputedConversionPlotter.setName("Share of BUs with imputed income");
+				updateChartSet.add(ratioVsImputedConversionPlotter);
+				tabSet.add(ratioVsImputedConversionPlotter);
+			}
+
 
 		    if (securityIndex) {
 

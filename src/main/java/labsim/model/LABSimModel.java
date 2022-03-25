@@ -58,7 +58,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 	private Country country; // = Country.UK;
 	
 	@GUIparameter(description = "Simulated population size (base year)")
-	private Integer popSize = 10000;
+	private Integer popSize = 20000;
 
 	@GUIparameter(description = "Simulation first year [valid range 2011-2017]")
 	private Integer startYear = Parameters.getMin_Year();
@@ -366,6 +366,11 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		}
 		euromodOutputPersons = null;
 
+		for (Person person: persons) {
+		//	person.setYptciihs_dv(0);
+			person.updateNonEmploymentIncome();
+		}
+
 		// initialise data that feature in the observer's charts
 		for (BenefitUnit benefitUnit : benefitUnits) {
 			if (benefitUnit.getAtRiskOfWork()) {
@@ -498,7 +503,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		yearlySchedule.addEvent(this, Processes.ConsiderCohabitationAlignment);
 		
 		// C:	Marriage
-		yearlySchedule.addEvent(this, Processes.UnionMatching); 
+		yearlySchedule.addEvent(this, Processes.UnionMatching);
 //		yearlySchedule.addEvent(this, Processes.CheckForEmptyHouseholds);
 //		yearlySchedule.addEvent(this, Processes.Timer);
 
@@ -811,7 +816,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 					int numPersonsInSimOfThisGenderRegionAndAge = personsByGenderRegionAndAge.get(gender, region, age).size();
 //					System.out.println("For gender: " + gender + "region: " + region + "and age: " + age +"there are " + numPersons + "people. Target for that group is " + targetByGenderRegionAndAge);
 					//If no persons to copy, the age can be relaxed to find someone similar. But what if alignment suggests we set the number of people with some characteristics to 0? Should we still align in such case?
-					if (targetByGenderRegionAndAge > 0) { //The condition was added to only align where possible, but instead should relax age within +- 5 years until a person to copy is found. 
+					if (targetByGenderRegionAndAge > 0) { //The condition was added to only align where possible, but instead should relax age within +- 5 years until a person to copy is found.
 						createOrRemovePersons(gender, region, age, numPersonsInSimOfThisGenderRegionAndAge, targetByGenderRegionAndAge);
 					}
 					
@@ -942,7 +947,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 //    				System.out.println("Will attempt to add child " + child.getKey().getId() + "aged " + child.getAge() + " To mother with ID " + mother.getKey().getId() 
 //   									+ " From HH " + mother.getHousehold().getKey().getId() + " Which currently has " + mother.getHousehold().getN_children_allAges());
 
-					if (mother.getDag() >= child.getDag()+15) {
+					if (mother.getDag() >= child.getDag()+Parameters.MIN_AGE_MATERNITY) {
 
 						child.setId_mother(mother.getKey().getId());
 						child.setBenefitUnit(mother.getBenefitUnit());
@@ -994,13 +999,16 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		int changeInAgentsOfThisGenderAndAge = 0;		
 		int numPersonsInSimMinusTarget = numPersonsInSimOfThisGenderRegionAndAge - targetNum;
 		
-		List<Person> personsByGenderRegionAndAgeList = new ArrayList<Person>(personsByGenderRegionAndAge.get(gender, region, age)); //Create list here because casts don't work
+		List<Person> personsByGenderRegionAndAgeList = new LinkedList<>(personsByGenderRegionAndAge.get(gender, region, age));
 		
 		//First deal with the case of too many people
+
 		int difference = 0;
+		/*
 		if (year <= startYear) {
 			difference = 1;
 		}
+		*/
 		if (numPersonsInSimMinusTarget > difference) {
 			
 			TreeSet<Integer> randomIndices = new TreeSet<Integer>();
@@ -2529,7 +2537,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
         	throw new IllegalStateException("ERROR - initialPersonList and fullPersonSet have different sizes!");
         }
 
-        Set<Household> inputHouseholdSet = new LinkedHashSet<>(inputHouseholdList); //TODO: Would replacing these with TreeSets to sort improve performance?
+        Set<Household> inputHouseholdSet = new LinkedHashSet<>(inputHouseholdList);
         Set<BenefitUnit> inputBUSet = new LinkedHashSet<>(inputBenefitUnitList);
 
         //Define a set of household Ids
@@ -2605,13 +2613,13 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
         	System.out.println("Will expand the initial population to have " + popSize + " individuals and not use weights.");
         	//Desired number of individual in the simulation is set in popSize
         	//1. Create a list of benefitUnits and expand according to weight:
-        	List<Household> expandedHouseholdList = new ArrayList<Household>();
+        	List<Household> expandedHouseholdList = new LinkedList<>();
         	double totalWeightCount = 0;
         	for (Household house : inputHouseholdList) { //For each household in the initial database of households
 //        		System.out.println("BenefitUnit id is " + house.getKey().getId() + "and weight is " + house.getWeight());
         		totalWeightCount = totalWeightCount + house.getDwt();
 
-				for (int i = 0; i < house.getDwt() / 100 ; i++) { //Get weight of the household and copy the household until weight / 100 is reached
+				for (int i = 0; i < house.getDwt() / 10 ; i++) { //Get weight of the household and copy the household until weight / 100 is reached
 					expandedHouseholdList.add(house);
 				}
 			}
@@ -2671,6 +2679,28 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 					newBenefitUnit.setHousehold(newHousehold); //Assign the benefit unit to the household
 					newHousehold.addBenefitUnitToHousehold(newBenefitUnit); //Assign the new benefit unit to the new household. Note that this calls setHousehold() method in the newBenefitUnit.
 					benefitUnits.add(newBenefitUnit); //Add new benefit unit to the set of benefit units in the simulation
+//
+// 					//TODO: 18/03/2022: Does the person need to be added to the benefit unit explicitly somewhere in this method? (Example code below)
+// 					if(house.getMaleId() != null && house.getMaleId().equals(id)) {
+//            		house.addResponsiblePerson(person);
+//            		System.out.println("Run1");
+//            	}
+//            	else if(house.getFemaleId() != null && house.getFemaleId().equals(id)) {
+//            		house.addResponsiblePerson(person);
+//            		System.out.println("Run2");
+//            	}
+//        		else if(house.getMaleId() != null && house.getMaleId().equals(person.getFatherId())) {
+//        			house.getChildren().add(person);			//Check if person's father is male responsible for accomodation - if so, add to Children set
+//        			System.out.println("Run3");
+//        		}
+//        		else if(house.getFemaleId() != null && house.getFemaleId().equals(person.getMotherId())) {
+//        			house.getChildren().add(person);			//Check if person's father is male responsible for accomodation - if so, add to Children set
+//        			System.out.println("Run4");
+//        		}
+//            	else {
+//            		house.getOtherMembers().add(person);		//The default relationship in the house
+//            		System.out.println("Run5");
+//            	}
 
 					//Now iterate through a list of all benefitUnit members and set partner, mother, and father id:
 					for (Person person : newBenefitUnitMembers) {
@@ -2873,43 +2903,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
             			//Note that for homosexual couples, we have split them up above, however we have also set partnerId to null, hence the exception below should not be thrown.
             			throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with householdId " + person.getId_benefitUnit() + ", could not find partner " + person.getId_partner() + " in same household " + house.getKey().getId() + "!");
             		}
-            	}	
-            	
-//            	//XXX: Note, we retrieve male id and female id from the data as follows:
-//            	// (Currently), we use idfather and idmother as the male and female id respectively.
-//            	// TODO: An issue arises in that currently the household table in the input database
-//            	// has duplicate rows - one for each person in the population .csv file.  So, depending
-//            	// on the person corresponding to the row, there can potentially be several rows with
-//            	// of the same household id (idhh in .csv, or id in the household table) with different
-//            	// male/female ids.  Only one of them will be kept when converting the list of benefitUnits
-//            	// created from the input database, into the household set (so that duplicates, as 
-//            	// determined by the household id are removed).  This means that one of these duplicates
-//            	// will selected (possibly, the last duplicate row?).  So whoever is the mother / father
-//            	// (if they exist) in the last row (duplicate) of the household will be the female / male
-//            	// of the house, otherwise it will be male / female will be null. 
-//            	if(house.getMaleId() != null && house.getMaleId().equals(id)) {
-//            		house.addResponsiblePerson(person);
-//            		System.out.println("Run1");
-//            	}
-//            	else if(house.getFemaleId() != null && house.getFemaleId().equals(id)) {
-//            		house.addResponsiblePerson(person);
-//            		System.out.println("Run2");
-//            	}
-//        		else if(house.getMaleId() != null && house.getMaleId().equals(person.getFatherId())) {
-//        			house.getChildren().add(person);			//Check if person's father is male responsible for accomodation - if so, add to Children set
-//        			System.out.println("Run3");
-//        		}
-//        		else if(house.getFemaleId() != null && house.getFemaleId().equals(person.getMotherId())) {
-//        			house.getChildren().add(person);			//Check if person's father is male responsible for accomodation - if so, add to Children set
-//        			System.out.println("Run4");
-//        		}         
-//            	else {
-//            		house.getOtherMembers().add(person);		//The default relationship in the house
-//            		System.out.println("Run5");
-//            	}
-            	
-            	//Now this is done at the beginning, in the definition of members
-//            	house.getOtherMembers().addAll(members);		//Everyone starts off in otherMembers by default
+            	}
 
             }
             house.calculateSize();		//Calculate how many simulated (unweighted) persons live in the household
@@ -3266,17 +3260,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 	//Requires Labour Market to be initialised and EUROMOD policy scenario for start year to be specified, hence it is called after creating the Labour Market object
 	private void initialisePotentialEarningsByWageEquationAndEmployerSocialInsurance() {
 		for(Person person: persons) {
-//			DonorPerson donor = euromodOutputPersons.get(person.getKey().getId());	//Look for corresponding donor (note that we have structured the program such that - for the initial population of Person objects - there is a corresponding donor DonorPerson object with the same id that is derived from the same input data.  So the social insurance data should be applicable for this person. TODO: This is not necessarily true now that we split the initial and donor populations
-//			System.out.println("ID of person to be updated is " + person.getKey().getId());
 			person.updatePotentialEarnings();	//XXX: We override the initialisation of persons' earnings using the estimated wage equation (this may be necessary to ensure the proportional change in unit labour cost is not ridiculously large ~10^100, due to discrepancy between the earnings data in the input database population and the estimated earnings from the wage equation of Bargain et al.  Only once the current discrepancy is fixed (hopefully using our own wage equation), can we start to re-initialise using values in the input data).
-			/*
-			if(socialInsurance != null) {
-				person.setUnitLabourCost(person.getPotentialEarnings() + socialInsurance);
-			}
-			else {		//For case where social insurance is null, possibly because person is self-employed
-				person.setUnitLabourCost(person.getPotentialEarnings());
-			}
-			*/
 		}
 	}
 	

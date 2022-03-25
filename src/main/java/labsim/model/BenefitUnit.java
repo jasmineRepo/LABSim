@@ -339,6 +339,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		this.n_children_allAges_lag1 = 0;
 		this.n_children_02 = 0;
 		this.n_children_02_lag1 = 0;
+		this.disposableIncomeMonthly = 0.;
 		this.equivalisedDisposableIncomeYearly = 0.;
 		this.createdByConstructor = "LongID";
 		this.disposableIncomeMonthlyImputedFlag = false;
@@ -363,11 +364,6 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		otherMembers = new LinkedHashSet<Person>();
 		size = 0;
 		addResponsiblePerson(person);
-		if(person.getDgn().equals(Gender.Female)) {
-			female = person;
-		} else if(person.getDgn().equals(Gender.Male)) {
-			male = person;
-		}
 		household = person.getBenefitUnit().getHousehold(); // New BU should retain link to household.
 		id_household = person.getId_household(); //Retain householdId when setting up a new benefit unit. Add benefit units to household method should override this.
 		this.disposableIncomeMonthlyImputedFlag = false;
@@ -1354,16 +1350,18 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	protected Double convertGrossToDisposable(DonorHousehold donorHousehold, Double grossIncomeToConvert) {
 		double disposableIncomeToReturn;
 		double donorGrossIncome = donorHousehold.getGrossIncome(); // Gross income of the donor
+		double donorDisposableIncome = donorHousehold.getDisposableIncome();
 		double ratio = donorHousehold.getDisposableToGrossIncomeRatio(); // Get ratio of disposable to gross income from the donor
 		// If donor's gross income is too small, or the ratio too large => don't use the conversion but use disposable income directly
 		// getMedianIncomeForCurrentYear() retrieves the median of donor income given the policy name applicable to the current year
-		if (donorGrossIncome > Parameters.PERCENTAGE_OF_MEDIAN_EM_DONOR*model.getUpratedMedianIncomeForCurrentYear() && ratio <= Parameters.MAX_EM_DONOR_RATIO) { // If donor's gross income is bigger than 10% of the median gross income in the donor population (for a given policy) and the ratio is smaller than Parameters.MAX_EM_DONOR_RATIO, use ratio to convert simulated gross income into net. Otherwise, impute disposable income directly from the donor.
+		// If donor's gross income is bigger than 10% of the median gross income in the donor population (for a given policy) and the ratio is smaller than Parameters.MAX_EM_DONOR_RATIO, use ratio to convert simulated gross income into net. Otherwise, impute disposable income directly from the donor.
+		if (donorGrossIncome > Parameters.PERCENTAGE_OF_MEDIAN_EM_DONOR*model.getUpratedMedianIncomeForCurrentYear() && ratio <= Parameters.MAX_EM_DONOR_RATIO) {
 			disposableIncomeToReturn = ratio * grossIncomeToConvert;
 			setDisposableIncomeMonthlyImputedFlag(false);
 		} else {
-			disposableIncomeToReturn = donorHousehold.getDisposableIncome(); // Note that this value is uprated to each simulated year
+			disposableIncomeToReturn = donorDisposableIncome; // Note that this value is uprated to each simulated year
 			setDisposableIncomeMonthlyImputedFlag(true);
-		}
+	}
 		return disposableIncomeToReturn;
 	}
 
@@ -1420,37 +1418,38 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	There are two cases to consider: i) single benefit units, ii) couples where no individual is at risk of work
 	 */
 	protected void updateDisposableIncomeIfNotAtRiskOfWork() {
-		//Get donor benefitUnits from EUROMOD - the most similar benefitUnits for our criteria, matched by:
-		// BenefitUnit characteristics: occupancy, region, number of children;
-		// Individual characteristics (potentially for each partner): gender, education, number of hours worked (binned in classes), work sector, health, age;
-		// and with minimum difference between gross (market) income.
-		MultiKeyMap<Labour, DonorHousehold> donorHouseholdsByLabourPairs = findDonorHouseholdsByLabour();
+		if (!getAtRiskOfWork()) {
+			//Get donor benefitUnits from EUROMOD - the most similar benefitUnits for our criteria, matched by:
+			// BenefitUnit characteristics: occupancy, region, number of children;
+			// Individual characteristics (potentially for each partner): gender, education, number of hours worked (binned in classes), work sector, health, age;
+			// and with minimum difference between gross (market) income.
+			MultiKeyMap<Labour, DonorHousehold> donorHouseholdsByLabourPairs = findDonorHouseholdsByLabour();
 
-		//Then get the [zero, null] or [null, zero] or [zero, zero] donors depending on the household composition - but no need to iterate through all of them, as BUs not at risk of work don't choose hours to max. utility.
-		if (occupancy.equals(Occupancy.Couple)) {
-			MultiKey<? extends Labour> labourKey = new MultiKey<>(Labour.ZERO, Labour.ZERO);
-			DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
-			double simulatedIncomeToConvert = Math.sinh(male.getYptciihs_dv()) + Math.sinh(female.getYptciihs_dv());
-			disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
-		}
-		else if (occupancy.equals(Occupancy.Single_Male)) {
-			MultiKey<? extends Labour> labourKey = new MultiKey<>(Labour.ZERO, null);
-			DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
-			double simulatedIncomeToConvert = Math.sinh(male.getYptciihs_dv());
-			disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
-		}
-		else if (occupancy.equals(Occupancy.Single_Female)){
-			MultiKey<? extends Labour> labourKey = new MultiKey<>(null, Labour.ZERO);
-			DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
-			double simulatedIncomeToConvert = Math.sinh(female.getYptciihs_dv());
-			disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
-		}
-		else {
-			throw new IllegalStateException("Benefit Unit with the following ID has no recognised occupancy: " + getKey().getId());
-		}
+			//Then get the [zero, null] or [null, zero] or [zero, zero] donors depending on the household composition - but no need to iterate through all of them, as BUs not at risk of work don't choose hours to max. utility.
+			if (occupancy.equals(Occupancy.Couple)) {
+				MultiKey<? extends Labour> labourKey = new MultiKey<>(Labour.ZERO, Labour.ZERO);
+				DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
+				double simulatedIncomeToConvert = Math.sinh(male.getYptciihs_dv()) + Math.sinh(female.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
+			}
+			else if (occupancy.equals(Occupancy.Single_Male)) {
+				MultiKey<? extends Labour> labourKey = new MultiKey<>(Labour.ZERO, null);
+				DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
+				double simulatedIncomeToConvert = Math.sinh(male.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
+			}
+			else if (occupancy.equals(Occupancy.Single_Female)){
+				MultiKey<? extends Labour> labourKey = new MultiKey<>(null, Labour.ZERO);
+				DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
+				double simulatedIncomeToConvert = Math.sinh(female.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
+			}
+			else {
+				throw new IllegalStateException("Benefit Unit with the following ID has no recognised occupancy: " + getKey().getId());
+			}
 
-		calculateBUIncome();
-
+			calculateBUIncome();
+		}
 	}
 
 	protected void updateMonthlyLabourSupplyCovid19() {
@@ -1470,17 +1469,17 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		} else if (occupancy.equals(Occupancy.Single_Male) || occupancy.equals(Occupancy.Single_Female)) {
 			//Consider only one person, of either gender, for the transition regressions
 			Person person;
-			if (occupancy.equals(Occupancy.Single_Male)) {
+			if (occupancy.equals(Occupancy.Single_Male) && male.atRiskOfWork()) {
 				person = male;
 				Triple<Les_c7_covid, Double, Integer> stateGrossIncomeWorkHoursTriple = predictCovidTransition(person);
 				covid19MonthlyStateAndGrossIncomeAndWorkHoursTripleMale.add(stateGrossIncomeWorkHoursTriple);
-			} else if (occupancy.equals(Occupancy.Single_Female)) {
+			} else if (occupancy.equals(Occupancy.Single_Female) && female.atRiskOfWork()) {
 				person = female;
 				Triple<Les_c7_covid, Double, Integer> stateGrossIncomeWorkHoursTriple = predictCovidTransition(person);
 				covid19MonthlyStateAndGrossIncomeAndWorkHoursTripleFemale.add(stateGrossIncomeWorkHoursTriple);
-			} else {System.out.println("Warning: Incorrect occupancy for benefit unit " + getKey().getId());}
-
+			}
 		}
+			else {System.out.println("Warning: Incorrect occupancy for benefit unit " + getKey().getId());}
 	}
 
 	/*
@@ -1721,7 +1720,9 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 				grossMonthlyIncomeToReturn = 0;
 			}
 
-		} else {System.out.println("Warning: Person " + person.getKey().getId() + " entered Covid-19 transitions process, but doesn't have correct starting labour market state which was " + stateFrom);}
+		} else {
+		//	System.out.println("Warning: Person " + person.getKey().getId() + " entered Covid-19 transitions process, but doesn't have correct starting labour market state which was " + stateFrom);
+		}
 
 		Triple<Les_c7_covid, Double, Integer> stateGrossIncomeWorkHoursTriple = Triple.of(stateTo, grossMonthlyIncomeToReturn, newWorkHours); // Triple contains outcome labour market state after transition, gross income, and work hours
 		person.setCovidModuleGrossLabourIncome_lag1(grossMonthlyIncomeToReturn); // used as a regressor in the Covid-19 regressions
@@ -1767,8 +1768,6 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 				double simulatedIncomeToConvert = Parameters.WEEKS_PER_MONTH_RATIO * (male.getPotentialEarnings()*male.getLabourSupplyWeekly().getHours() + female.getPotentialEarnings()*female.getLabourSupplyWeekly().getHours()) + Math.sinh(male.getYptciihs_dv()) + Math.sinh(female.getYptciihs_dv());
 				disposableIncomeMonthly = convertGrossToDisposable(donorHouse, simulatedIncomeToConvert);
 
-				//TODO: Should the "Single Type 2" be considered here? I.e. those where partner is a student, disabled, or outside of the specified age range? 
-				//They are not at risk of work (TODO: make sure being disabled makes person not at risk), so will always have 0 labour supply
 				//Note that only benefitUnits at risk of work are considered, so at least one partner is at risk of work
 				
 				double exponentialRegressionScore = 0.;
@@ -3446,8 +3445,8 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		return covid19MonthlyStateAndGrossIncomeAndWorkHoursTripleMale;
 	}
 
-	public boolean isDisposableIncomeMonthlyImputedFlag() {
-		return disposableIncomeMonthlyImputedFlag;
+	public double isDisposableIncomeMonthlyImputedFlag() {
+		return disposableIncomeMonthlyImputedFlag? 1. : 0.;
 	}
 
 	public void setDisposableIncomeMonthlyImputedFlag(boolean disposableIncomeMonthlyImputedFlag) {
