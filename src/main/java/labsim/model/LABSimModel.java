@@ -2,6 +2,7 @@
 package labsim.model;
 
 // import Java packages
+import java.io.File;
 import java.util.*;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -10,14 +11,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 
 // import plug-in packages
+import labsim.data.Statistics;
 import labsim.model.decisions.ManagerPopulateGrids;
 import labsim.model.enums.*;
 import microsim.alignment.outcome.ResamplingAlignment;
+import microsim.statistics.CrossSection;
 import org.apache.commons.collections4.keyvalue.MultiKey;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapIterator;
 import org.apache.commons.collections4.map.LinkedMap;
 import org.apache.commons.collections4.map.MultiKeyMap;
+import org.apache.commons.math.stat.descriptive.DescriptiveStatistics;
 import org.apache.commons.math3.util.Pair;
 import org.apache.log4j.Logger;
 import org.apache.commons.lang3.time.StopWatch;
@@ -60,7 +64,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 	@GUIparameter(description = "Simulated population size (base year)")
 	private Integer popSize = 10000;
 
-//	@GUIparameter(description = "Simulation first year [valid range 2011-2050]")
+	@GUIparameter(description = "Simulation first year [valid range 2011-2017]")
 	private Integer startYear = Parameters.getMin_Year();
 
 	@GUIparameter(description = "Simulation ends at year [valid range 2011-2050]")
@@ -70,22 +74,9 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 	private boolean fixTimeTrend = true;
 
 	@GUIparameter(description = "Fix year used in the regressions to")
-	private Integer timeTrendStopsIn = Parameters.getMin_Year();
-	
-//	@GUIparameter(description="Age at which people in initial population who are not employed are forced to retire")
-//	private Integer ageNonWorkPeopleRetire = 65;	//The problem is that it is difficult to find donor benefitUnits for non-zero labour supply for older people who are in the Nonwork category but not Retired.  They should, in theory, still enter the Labour Market Module, but if we cannot find donor benefitUnits, how should we proceed?  We avoid this problem by defining that people over the age specified here are retired off if they have activity_status equal to Nonwork.
-	
-//	@GUIparameter(description="Minimum age for males to retire")
-//	private Integer minRetireAgeMales = 45;
-//
-//	@GUIparameter(description="Maximum age for males to retire")
-//	private Integer maxRetireAgeMales = 75;
-//
-//	@GUIparameter(description="Minimum age for females to retire")
-//	private Integer minRetireAgeFemales = 45;
-//
-//	@GUIparameter(description="Maximum age for females to retire")
-//	private Integer maxRetireAgeFemales = 75;
+	private Integer timeTrendStopsIn = 2017;
+
+	private Integer timeTrendStopsInMonetaryProcesses = 2017; // For monetary processes, time trend always continues to 2017 (last observed year in the estimation sample) and then values are grown at the growth rate read from Excel
 
 	@GUIparameter(description = "Fix random seed?")
 	private Boolean fixRandomSeed = true;
@@ -109,10 +100,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 //	@GUIparameter(description = "Force recreation of input database based on the data provided by the population_[country].csv file")
 //	private boolean refreshInputDatabase = false;		//Tables can be constructed in GUI dialog in launch, before JAS-mine GUI appears.  However, if skipping that, and manually altering the EUROMODpolicySchedule.xlsx file, this will need to be set to true to build new input database before simulation is run (though the new input database will only be viewable in the output/input/input.h2.db file).
 
-	@GUIparameter(description = "If true, set initial earnings from data in input population, otherwise, set using the wage equation regression estimates")
-	private boolean initialisePotentialEarningsFromDatabase = false;
-	
-//	@GUIparameter(description = "If unchecked, will expand population and not use weights")
+	//	@GUIparameter(description = "If unchecked, will expand population and not use weights")
 	private boolean useWeights = false;
 	
 	@GUIparameter(description = "If unchecked, will use the standard matching method")
@@ -156,7 +144,9 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 	private boolean alignEmployment = true; //Set to true to align employment share
 
     public boolean addRegressionStochasticComponent = true; //If set to true, and regression contains ResStanDev variable, will evaluate the regression score including stochastic part, and omits the stochastic component otherwise.
-	
+
+	public boolean fixRegressionStochasticComponent = true; // If true, only draw stochastic component once and use the same value throughout the simulation. Currently applies to wage equations.
+
 	public boolean commentsOn = true;
 
 	public boolean debugCommentsOn = true;
@@ -219,6 +209,8 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 	public int medEd = 0;
 	public int highEd = 0;
 	public int nothing = 0;
+
+	Map<String, Double> policyNameIncomeMedianMap = new LinkedHashMap<>(); // Initialise a <String, Double> map to store names of policies and median incomes
 
 	private Tests tests;
 
@@ -286,6 +278,8 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		// Note that the population may be cropped to simulate a smaller population depending on user choices in the GUI.
 		createInitialPopulationDataStructures(euromodOutputPersons);
 
+		initialiseDonorIncomeStatistics(); // Calculate median income for each policy in the donor population and income threshold to use while matching donors
+
 	//	System.out.println("Time to create donor population2 " + (System.currentTimeMillis() - elapsedTime)/1000. + " seconds.");
 
 		// population alignment
@@ -349,10 +343,6 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 					intertemporalResponsesToEducationStatus, startYear, endYear);
 		}
 
-		// earnings potential
-		if (!initialisePotentialEarningsFromDatabase) {
-			initialisePotentialEarningsByWageEquationAndEmployerSocialInsurance();
-		}
 		euromodOutputPersons = null;
 
 		// initialise data that feature in the observer's charts
@@ -362,7 +352,11 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 				// This sets the benefitUnit fields such as disposable benefitUnit income, needed for the collector's equivalised
 				// benefitUnit disposable income calculations that feature in the observer's charts.
 				benefitUnit.updateLabourSupply();
-			}				
+			}
+			else {
+				// Benefit units not at risk of work do not enter the process of updating labour supply above, but disposable income based on their capital and pension income still needs to be calculated. This is done in the updateDisposableIncomeIfNotAtRiskOfWork process.
+				benefitUnit.updateDisposableIncomeIfNotAtRiskOfWork();
+			}
 			// updateAggregateStatistics(benefitUnit, aggregateWeeklyGrossEarningsByEducation, aggregateWeeklyLabourCostsByEducation, aggregateWeeklyLabourSupplyByEducation);
 		}
 
@@ -396,6 +390,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		// finalise
 		log.debug("Time to build objects: " + (System.currentTimeMillis() - elapsedTime)/1000. + " seconds.");
 		System.out.println("Time to complete initialisation " + (System.currentTimeMillis() - elapsedTime)/1000. + " seconds.");
+		System.out.println("Location of the input directory: " + Parameters.INPUT_DIRECTORY);
 		elapsedTime = System.currentTimeMillis();
 
 
@@ -426,9 +421,10 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		yearlySchedule.addEvent(this, Processes.UpdateParameters);
 //		yearlySchedule.addEvent(this, Processes.CheckForEmptyHouseholds);
 
+		// TODO: calculate the median
+
 		//1 - DEMOGRAPHIC MODULE
-		// A: Ageing 
-		
+		// A: Ageing
 		yearlySchedule.addCollectionEvent(persons, Person.Processes.Ageing, false);		//Read only mode as agents are removed when they become older than Parameters.getMAX_AGE();
 
 		yearlySchedule.addEvent(this, Processes.CheckForEmptyBenefitUnits);
@@ -495,6 +491,8 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 
 		//5 - LABOUR MARKET MODULE 
 		yearlySchedule.addEvent(this, Processes.LabourMarketUpdate);
+		// For benefit units not at risk of work, follow the process below to update disposable income
+		yearlySchedule.addCollectionEvent(benefitUnits, BenefitUnit.Processes.UpdateDisposableIncomeNotAtRiskOfWork);
 //		yearlySchedule.addEvent(this, Processes.Timer);
 
 		//6 - UPDATE CONSUMPTION FOR THE SECURITY INDEX
@@ -509,7 +507,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		//For termination of simulation
 		int orderEarlier = -1;			//Set less than order so that this is called before the yearlySchedule in the endYear.
 		SystemEvent end = new SystemEvent(SimulationEngine.getInstance(), SystemEventType.End);
-		getEngine().getEventQueue().scheduleOnce(end, endYear, orderEarlier);
+		getEngine().getEventQueue().scheduleOnce(end, endYear+1, orderEarlier);
 //		getEngine().getEventQueue().scheduleOnce(new SingleTargetEvent(this, Processes.Stop), endYear, orderEarlier);
 		
 		log.debug("Time to build schedule " + (System.currentTimeMillis() - elapsedTime)/1000. + " seconds.");
@@ -616,11 +614,13 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 				printElapsedTime();
 				break;
 			case UpdateParameters:
+				System.out.println("Starting year " + year);
 				updateParameters();
 				if (commentsOn) log.info("Update Parameters Complete.");
 				break;
 			case UpdateYear:
 				if (commentsOn) log.info("It's the New Year's Eve of " + year);
+				System.out.println("It's the New Year's Eve of " + year);
 				Person.countOK = 0;
 				Person.countNaN = 0;
 				Person.countOKover32 = 0;
@@ -917,9 +917,9 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 
 					if (mother.getDag() >= child.getDag()+15) {
 
-						child.setMotherId(mother.getKey().getId());
+						child.setId_mother(mother.getKey().getId());
 						child.setBenefitUnit(mother.getBenefitUnit());
-						child.setFatherId(mother.getPartnerId());
+						child.setId_father(mother.getId_partner());
 						mother.getBenefitUnit().addChild(child);
 //    				mother.getHousehold().initializeFields();
 						mother.getBenefitUnit().updateChildrenFields();
@@ -1083,8 +1083,6 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 				//New benefit unit must have a household created for it as well
 				Household newHousehold = new Household();
 				newHousehold.addBenefitUnitToHousehold(newBenefitUnit);
-				newPerson.setHouseholdId(newBenefitUnit.getHouseholdId());
-
 //            	System.out.println("PID was " + person.getKey().getId() + "and the one set in constructor is  " + newPerson.getOriginalID() + ". New HHID is " + newPerson.getHouseholdId() + "and new PID is " + newPerson.getKey().getId() + " Partner ID is " + newPerson.getPartnerId() + 
 //						" Size of the children set in new HH is " + newBenefitUnit.getChildren().size());
 				
@@ -2257,21 +2255,34 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
         try {        		        
         	Class.forName("org.h2.Driver");
 	        conn = DriverManager.getConnection("jdbc:h2:"+DatabaseUtils.databaseInputUrl, "sa", "");
-	        
 //        	//Create input database from input file (population_[country].csv)    
 //			if(refreshInputDatabase) {
 //				SQLdataParser.createDatabaseTablesFromCSVfile(country, Parameters.getInputFileName(), startYear, conn);
 //			}
-			
+
+			//If user chooses start year that is higher than the last available initial population, last available population should be used but with uprated monetary values
+			boolean uprateInitialPopulation = (startYear > Parameters.getMaxStartYear());
+
 			//Create database tables to be used in simulation from country-specific tables
             String[] tableNames = new String[]{"PERSON", "DONORPERSON", "BENEFITUNIT", "DONORHOUSEHOLD", "HOUSEHOLD"};
+            String[] tableNamesInitial = new String[]{"PERSON", "BENEFITUNIT", "HOUSEHOLD"};
+            String[] tableNamesDonor = new String[]{"DONORPERSON", "DONORHOUSEHOLD"};
             stat = conn.createStatement();
-            for(String tableName: tableNames) {
+            for(String tableName: tableNamesDonor) {
 	            stat.execute("DROP TABLE IF EXISTS " + tableName);
 	            stat.execute("CREATE TABLE " + tableName + " AS SELECT * FROM " + tableName + "_" + country);
-            }        
-            
-            List<String> policyDependentAttributes = new ArrayList<>();
+            }
+			for(String tableName: tableNamesInitial) {
+				stat.execute("DROP TABLE IF EXISTS " + tableName);
+				if (uprateInitialPopulation) {
+					stat.execute("CREATE TABLE " + tableName + " AS SELECT * FROM " + tableName + "_" + country + "_" + Parameters.getMaxStartYear()); // Load the last available initial population from all available in tables of the database
+				}
+				else {
+					stat.execute("CREATE TABLE " + tableName + " AS SELECT * FROM " + tableName + "_" + country + "_" + startYear); // Load the country-year specific initial population from all available in tables of the database
+				}
+			}
+
+			List<String> policyDependentAttributes = new ArrayList<>();
             for(String policyName: Parameters.EUROMODpolicySchedule.values()) {
             	
             	String dispString = Parameters.DISPOSABLE_INCOME_VARIABLE_NAME + "_" + policyName;
@@ -2330,7 +2341,24 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
             while (rs2.next()) {
 				initialHoursWorkedWeekly.put(rs2.getLong("ID"), rs2.getDouble(Parameters.HOURS_WORKED_WEEKLY));
 			}
-            
+
+			//If start year is higher than the last available population, calculate the uprating factor and apply it to the monetary values in the database:
+			if (uprateInitialPopulation) {
+				double upratingFactor = Parameters.calculateUpratingFactorBetweenTwoYears(Parameters.getMaxStartYear(), startYear); //Calculate uprating factor which applied to last available initial population will return monetary values in start year terms
+				//Modify the underlying initial population being used by applying the upratingFactor to its monetary values
+				String[] columnsToUprate = new String[]{"YPNBIHS_DV", "YPTCIIHS_DV", "YPNCP", "YPNOAB", "YPLGRS_DV"};
+				for (String columnToUprateName : columnsToUprate) {
+					stat.execute(
+							"ALTER TABLE PERSON ALTER COLUMN " + columnToUprateName + " NUMERIC(30,6);"
+									+ "UPDATE PERSON SET " + columnToUprateName + " = SINH(" + columnToUprateName + ") * " + upratingFactor + ";"
+									+ "UPDATE PERSON SET " + columnToUprateName + " = LOG(" + columnToUprateName + " + SQRT(POWER(" + columnToUprateName + ",2) + 1));"
+					);
+				}
+				stat.execute(
+						"UPDATE PERSON SET SIMULATION_TIME = " + startYear + ";"
+						+	"UPDATE PERSON SET SYSTEM_YEAR = " + startYear + ";"
+				);
+			}
             
         } 
         catch(ClassNotFoundException|SQLException e){
@@ -2507,7 +2535,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 			Iterator<BenefitUnit> buIterator = inputBUListIterator.iterator(); //Explicitly create an iterator to allow removal of matched BUs in the loop
 			while (buIterator.hasNext()) { //Get next BU
 				BenefitUnit bu = buIterator.next();
-				if (bu.getHouseholdId() == hhId) { //If BenefitUnit belongs to the household in the outer iterator, add to setOfBUToAdd
+				if (bu.getId_household() == hhId) { //If BenefitUnit belongs to the household in the outer iterator, add to setOfBUToAdd
 					setOfBUToAdd.add(bu);
 					buIterator.remove(); //Remove from the list (but not the original inputBUSet) to speed up subsequent iterations
 				}
@@ -2526,7 +2554,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 			Iterator<Person> personIterator = inputPersonListIterator.iterator(); //Explicitly create an iterator to allow removal of matched persons in the loop
 			while (personIterator.hasNext()) { //Get next person
 				Person person = personIterator.next();
-				if (person.getBenefitUnitId() == buId) { //If person belongs to the benefit unit, add to setOfPersonsToAdd
+				if (person.getId_benefitUnit() == buId) { //If person belongs to the benefit unit, add to setOfPersonsToAdd
 					setOfPersonsToAdd.add(person);
 					personIterator.remove(); //Remove from the list (but not the original inputPersonSet to speed up subsequent iterations
 				}
@@ -2591,7 +2619,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 					for (Person person : personsInThisBU) {
 						Person newPerson = new Person(person); //Note: the reason for copying BenefitUnits, Persons, and Household is that the same household can be sampled more than once in the expansion.
 						newPerson.setBenefitUnit(newBenefitUnit); //Assign new person to new benefit unit
-						newPerson.setHouseholdId(newHousehold.getId()); //Update the household id of the new person
+					//	newPerson.setId_household(newHousehold.getId()); //Update the household id of the new person => not needed as done when assigning the benefit unit to a household below
 						newPerson.setWeight(1); //Set weight to 1 to remove weights
 						newBenefitUnitMembers.add(newPerson); //Add to the set of BU members
 
@@ -2616,12 +2644,12 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 
 					//Now iterate through a list of all benefitUnit members and set partner, mother, and father id:
 					for (Person person : newBenefitUnitMembers) {
-						if (person.getPartnerId() != null) {
+						if (person.getId_partner() != null) {
 							if (person.getPartner() == null) {
 								for (Person other : newBenefitUnitMembers) {
-									if (person.getPartnerId().equals(other.getOriginalID())) {
-										if (!other.getPartnerId().equals(person.getOriginalID())) {
-											throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with partnerId " + person.getPartnerId() + ", their supposed partner whose id is " + other.getKey().getId() + " has a partnerId " + other.getPartnerId() + " which is not equal to the first person.  This implies an unreciprocated partnership (love triangle etc.) in the data!");
+									if (person.getId_partner().equals(other.getId_original())) {
+										if (!other.getId_partner().equals(person.getId_original())) {
+											throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with partnerId " + person.getId_partner() + ", their supposed partner whose id is " + other.getKey().getId() + " has a partnerId " + other.getId_partner() + " which is not equal to the first person.  This implies an unreciprocated partnership (love triangle etc.) in the data!");
 										}
 										if (person.getDgn().equals(other.getDgn())) { //Check for same-sex relationships
 											//Split up same-sex couples (assign null to partner and partnerId)
@@ -2637,31 +2665,31 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 									}
 								}
 							}
-							if(person.getPartner() == null && person.getPartnerId() != null) {		//Check for missing partner
+							if(person.getPartner() == null && person.getId_partner() != null) {		//Check for missing partner
 								//Note that for same-sex couples, we have split them up above, however we have also set partnerId to null, hence the exception below should not be thrown.
-								throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with benefitUnitId " + person.getBenefitUnitId() + ", could not find partner " + person.getPartnerId() + " in same benefitUnit " + bu.getKey().getId() + "!");
+								throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with benefitUnitId " + person.getId_benefitUnit() + ", could not find partner " + person.getId_partner() + " in same benefitUnit " + bu.getKey().getId() + "!");
 							}
 						}
 
-						if (person.getMotherId() != null) {
+						if (person.getId_mother() != null) {
 							for (Person other : newBenefitUnitMembers) {
-								if (person.getMotherId().equals(other.getOriginalID())) {
+								if (person.getId_mother().equals(other.getId_original())) {
 									//Replace mother ID with new ID
-									person.setMotherId(other.getKey().getId());
+									person.setId_mother(other.getKey().getId());
 									if (other.getDgn().equals(Gender.Male)) {
-										System.out.println("Warning: Male assigned the role of the mother for HH ID " + person.getBenefitUnitId());
+										System.out.println("Warning: Male assigned the role of the mother for HH ID " + person.getId_benefitUnit());
 									}
 								}
 							}
 						}
 
-						if (person.getFatherId() != null) {
+						if (person.getId_father() != null) {
 							for (Person other : newBenefitUnitMembers) {
-								if (person.getFatherId().equals(other.getOriginalID())) {
+								if (person.getId_father().equals(other.getId_original())) {
 									//Replace father ID with new ID
-									person.setFatherId(other.getKey().getId());
+									person.setId_father(other.getKey().getId());
 									if (other.getDgn().equals(Gender.Female)) {
-										System.out.println("Warning: Female assigned the role of the father for HH ID " + person.getBenefitUnitId());
+										System.out.println("Warning: Female assigned the role of the father for HH ID " + person.getId_benefitUnit());
 									}
 								}
 							}
@@ -2758,7 +2786,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
     		Iterator<Person> p = inputPersonSet.iterator();
             while (p.hasNext()) {
                 Person person = p.next(); 
-                if(person.getBenefitUnitId() == house.getKey().getId()) {
+                if(person.getId_benefitUnit() == house.getKey().getId()) {
                 	person.setBenefitUnit(house);
                 	members.add(person);						//Create shorter set consisting only of people in the same household
                 	persons.add(person);						//Add person to persons set to create a set of the desired sample size
@@ -2788,12 +2816,12 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
             	long id = person.getKey().getId();
             	     	
             	//Assign partners
-            	if(person.getPartnerId() != null) {
+            	if(person.getId_partner() != null) {
             		if(person.getPartner() == null) {
             			for(Person other : members) {            		
-    	            		if(person.getPartnerId().equals(other.getKey().getId())) {
-    	            			if(!other.getPartnerId().equals(id)) {		//Check for love triangles
-    	                    		throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with partnerId " + person.getPartnerId() + ", their supposed partner whose id is " + other.getKey().getId() + " has a partnerId " + other.getPartnerId() + " which is not equal to the first person.  This implies an unreciprocated partnership (love triangle etc.) in the data!");    	            			
+    	            		if(person.getId_partner().equals(other.getKey().getId())) {
+    	            			if(!other.getId_partner().equals(id)) {		//Check for love triangles
+    	                    		throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with partnerId " + person.getId_partner() + ", their supposed partner whose id is " + other.getKey().getId() + " has a partnerId " + other.getId_partner() + " which is not equal to the first person.  This implies an unreciprocated partnership (love triangle etc.) in the data!");
     	            			}    	            			
     	            			if(person.getDgn().equals(other.getDgn())) {		//Check for same sex relationships
     	            				//Option of handling same-sex partnerships - Because we model benefitUnits as intrinsically having a responsible male and female, who make decisions on giving birth, we need to split up same-sex couples.
@@ -2811,9 +2839,9 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
     	            		}
     	            	}
             		}
-            		if(person.getPartner() == null && person.getPartnerId() != null) {		//Check for missing partner
+            		if(person.getPartner() == null && person.getId_partner() != null) {		//Check for missing partner
             			//Note that for homosexual couples, we have split them up above, however we have also set partnerId to null, hence the exception below should not be thrown.
-            			throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with householdId " + person.getBenefitUnitId() + ", could not find partner " + person.getPartnerId() + " in same household " + house.getKey().getId() + "!");
+            			throw new IllegalArgumentException("Error - For person " + person.getKey().getId() + " with householdId " + person.getId_benefitUnit() + ", could not find partner " + person.getId_partner() + " in same household " + house.getKey().getId() + "!");
             		}
             	}	
             	
@@ -2866,7 +2894,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
         
         //Below the code is the same for both weighted and unweighted population, iterating through person and benefitUnits lists.
         
-        Set<BenefitUnit> newHousesCreated = new LinkedHashSet<BenefitUnit>();				//Create a set of houses that are newly created by the following process, to add to benefitUnits afterwards (as there is no .add(newHouse) method for (set) Iterator, only ListIterator).
+        Set<BenefitUnit> newBUsCreated = new LinkedHashSet<BenefitUnit>();				//Create a set of BUs that are newly created by the following process, to add to benefitUnits afterwards (as there is no .add(newBU) method for (set) Iterator, only ListIterator).
 
         //Handle case where benefitUnits have no responsible male or female.
         //Try to reconstruct a family structure, or create new benefitUnits
@@ -2918,7 +2946,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 							//Note, the partner is handled in the setupNewHome method below
 							BenefitUnit newBU = person.setupNewBenefitUnit(false);		//Non-automatic updates, need to manually add to household set and remove people
 //							houseIter.add(newHouse);				//No such thing as an .add() method for Iterator, only ListIterator, so need to manually add to benefitUnits set after the iteration
-							newHousesCreated.add(newBU);
+							newBUsCreated.add(newBU);
 							benefitUnitsWithPotentialParents.add(newBU);
 							
 						}
@@ -2949,7 +2977,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 						else {
 							BenefitUnit newBU = singlePerson.setupNewBenefitUnit(false);		//Non-automatic updates, need to manually add to household set and remove people
 //							houseIter.add(newHouse);			//No such thing as an .add() method for Iterator, only ListIterator, so need to manually add to benefitUnits set after the iteration
-							newHousesCreated.add(newBU);
+							newBUsCreated.add(newBU);
 							benefitUnitsWithPotentialParents.add(newBU);
 						}
 						pIterSingles.remove();		//Remove from otherMembers set
@@ -2972,24 +3000,24 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 					Person child = pIterChildren.next();
 					
 					//Now check for parents in the householdsWithPotentialParents set.
-					if(child.getMotherId() != null) {				//If parent exists, child will live with mother by default, and only if no mother exists will the child live with the father							
+					if(child.getId_mother() != null) {				//If parent exists, child will live with mother by default, and only if no mother exists will the child live with the father
 						for(BenefitUnit benefitUnit : benefitUnitsWithPotentialParents) {
 							
 							boolean moveToMotherHouse = false;
-							if(benefitUnit.getFemaleId() != null && child.getMotherId().equals(benefitUnit.getFemaleId())) {
+							if(benefitUnit.getId_female() != null && child.getId_mother().equals(benefitUnit.getId_female())) {
 								moveToMotherHouse = true;
 							}
 							else {
 								//There exists a benefitUnit in the UK (idhh = 661) where three generations live, where the grandchild is 1 year old, the mother of the grandchild is a single mum of 17, who lives with her mother - a single mum of 52.  So while the 17 year old is assigned to the benefitUnit of her mother, the grandchild is left in otherMembers because we are only checking for parenthood of the responsible adults.  Need to check for all members of the benefitUnit whether they are the mother!
 								for(Person potentialTeenageMother: benefitUnit.getChildren()) {
-									if(child.getMotherId().equals(potentialTeenageMother.getKey().getId())) {
+									if(child.getId_mother().equals(potentialTeenageMother.getKey().getId())) {
 										moveToMotherHouse = true;
 									}
 								}
 								
 								if(moveToMotherHouse == false) {		//Finally, if haven't found mother yet in this house, check otherMembers in case mother is one of them
 									for(Person potentialMother: benefitUnit.getOtherMembers()) {
-										if(child.getMotherId().equals(potentialMother.getKey().getId())) {
+										if(child.getId_mother().equals(potentialMother.getKey().getId())) {
 											moveToMotherHouse = true;
 										}
 									}
@@ -3006,7 +3034,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 						}
 					}
 
-					else if(child.getFatherId() != null) {
+					else if(child.getId_father() != null) {
 //							if(child.getFatherId() != null) {
 //								
 //								if(household.getMaleId() != null && child.getFatherId().equals(household.getMaleId())) {							
@@ -3039,20 +3067,20 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 						for(BenefitUnit benefitUnit : benefitUnitsWithPotentialParents) {
 							
 							boolean moveToFatherHouse = false;
-							if(benefitUnit.getMaleId() != null && child.getFatherId().equals(benefitUnit.getMaleId())) {
+							if(benefitUnit.getId_male() != null && child.getId_father().equals(benefitUnit.getId_male())) {
 								moveToFatherHouse = true;
 							}
 							else {
 								//There exists a benefitUnit in the UK (idhh = 661) where three generations live, where the grandchild is 1 year old, the mother of the grandchild is a single mum of 17, who lives with her mother - a single mum of 52.  So while the 17 year old is assigned to the benefitUnit of her mother, the grandchild is left in otherMembers because we are only checking for parenthood of the responsible adults.  Need to check for all members of the benefitUnit whether they are the mother!
 								for(Person potentialTeenageFather: benefitUnit.getChildren()) {
-									if(child.getFatherId().equals(potentialTeenageFather.getKey().getId())) {
+									if(child.getId_father().equals(potentialTeenageFather.getKey().getId())) {
 										moveToFatherHouse = true;
 									}
 								}
 								
 								if(moveToFatherHouse == false) {		//Finally, if haven't found mother yet in this house, check otherMembers in case mother is one of them
 									for(Person potentialFather: benefitUnit.getOtherMembers()) {
-										if(child.getFatherId().equals(potentialFather.getKey().getId())) {
+										if(child.getId_father().equals(potentialFather.getKey().getId())) {
 											moveToFatherHouse = true;
 										}
 									}
@@ -3070,7 +3098,8 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 					}
 					else {		//child has no mother or father
 						if(bu.getMale() == null && bu.getFemale() == null) {		//This means that no partnerships were living in this house, nor single people over the age to leave the parental home (only single young people), and this is the first single person iterated in otherMembers, so will promote it to the responsible male or female of the house
-							throw new IllegalStateException("ERROR: Cannot find mother or father of child " + child.getKey().getId() + " with age " + child.getDag() + " in household " + bu.getKey().getId() + ", despite having a non-null parent!");
+					//		throw new IllegalStateException("ERROR: Cannot find mother or father of child " + child.getKey().getId() + " with age " + child.getDag() + " in household " + bu.getKey().getId() + ", despite having a non-null parent!");
+							pIterChildren.remove();
 //							house.addResponsiblePerson(child);
 //							pIterChildren.remove();
 						}
@@ -3096,7 +3125,7 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 //			}				
 			// else there exists a male and female id already
 		}
-        benefitUnits.addAll(newHousesCreated);		//Add newly created BenefitUnit objects to benefitUnits set
+        benefitUnits.addAll(newBUsCreated);		//Add newly created BenefitUnit objects to benefitUnits set
 		
 //		int minAgeInInitialPopulation = Integer.MAX_VALUE;
 //		int maxAgeInInitialPopulation = Integer.MIN_VALUE;
@@ -3193,6 +3222,10 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 
 		}
 
+		for (BenefitUnit benefitUnit : emptyBUs) {
+			removeBenefitUnit(benefitUnit);
+		}
+
 		//Initialize fields in newly created households
 		for (Household household : households) {
 			household.initializeFields();
@@ -3250,7 +3283,27 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 			return persons.add(person);
 		}
 	}
-	
+
+	/*
+	initialiseDonorIncomeStatistics() calculates, for each policy, the median income and the threshold to use when deciding whether to use the disposable-to-gross ratio or donor's disposable income directly, in the donor matching procedure.
+	 */
+	private void initialiseDonorIncomeStatistics() {
+
+		for(String policyName: Parameters.EUROMODpolicySchedule.values()) { // Iterate over all EM policies included in the donor population
+			List<Double> incomesList = new LinkedList<>();
+
+			for (DonorHousehold donorHousehold : euromodOutputHouseholds) {
+				double income = donorHousehold.getGrossIncome(policyName);
+				incomesList.add(income);
+			}
+
+			double[] arr = incomesList.stream().mapToDouble(d -> d).toArray();
+			DescriptiveStatistics statistics = new DescriptiveStatistics(arr); // Use incomesArray to calculate statistics
+			policyNameIncomeMedianMap.put(policyName, statistics.getPercentile(50)); // Store median income for a given policy
+
+		}
+
+	}
 	
 	
 	
@@ -3367,6 +3420,10 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 
 	public Integer getTimeTrendStopsIn() {
 		return timeTrendStopsIn;
+	}
+
+	public Integer getTimeTrendStopsInMonetaryProcesses() {
+		return timeTrendStopsInMonetaryProcesses;
 	}
 
 	public boolean isFixTimeTrend() {
@@ -3597,14 +3654,6 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 //		this.refreshInputDatabase = refreshInputDatabase;
 //	}
 
-	public boolean isInitialisePotentialEarningsFromDatabase() {
-		return initialisePotentialEarningsFromDatabase;
-	}
-
-	public void setInitialisePotentialEarningsFromDatabase(boolean initialisePotentialEarningsFromDatabase) {
-		this.initialisePotentialEarningsFromDatabase = initialisePotentialEarningsFromDatabase;
-	}
-
 
 	public LabourMarket getLabourMarket() {
 		return labourMarket;
@@ -3696,5 +3745,14 @@ public class LABSimModel extends AbstractSimulationManager implements EventListe
 		this.intertemporalResponsesToRegion = intertemporalResponsesToRegion;
 	}
 
+	public Map<String, Double> getPolicyNameIncomeMedianMap() {
+		return policyNameIncomeMedianMap;
+	}
+
+	public Double getMedianIncomeForCurrentYear() {
+		String policyName = Parameters.getEUROMODpolicyForThisYear(year);
+		Double value = policyNameIncomeMedianMap.get(policyName);
+		return value;
+	}
 
 }

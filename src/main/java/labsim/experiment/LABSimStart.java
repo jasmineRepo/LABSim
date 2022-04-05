@@ -58,6 +58,8 @@ public class LABSimStart implements ExperimentBuilder {
 	// default simulation parameters
 	private static Country country = Country.IT;
 	private static int startYear = Parameters.getMin_Year();
+	private static int maxStartYear = Parameters.getMaxStartYear();
+	private static int minStartYear = Parameters.getMinStartYear();
 
 
 	/**
@@ -88,7 +90,7 @@ public class LABSimStart implements ExperimentBuilder {
 		final SimulationEngine engine = SimulationEngine.getInstance();
 		MicrosimShell gui = null;
 		if (showGui) {
-			gui = new MicrosimShell(engine);		
+			gui = new MicrosimShell(engine);
 			gui.setVisible(true);
 		}
 		LABSimStart experimentBuilder = new LABSimStart();
@@ -113,10 +115,10 @@ public class LABSimStart implements ExperimentBuilder {
 		LABSimModel model = new LABSimModel(country, startYear);
 		LABSimCollector collector = new LABSimCollector(model);
 		LABSimObserver observer = new LABSimObserver(model, collector);
-				
+
 		engine.addSimulationManager(model);
 		engine.addSimulationManager(collector);
-		engine.addSimulationManager(observer);	
+		engine.addSimulationManager(observer);
 	}
 
 
@@ -132,10 +134,11 @@ public class LABSimStart implements ExperimentBuilder {
 		// initiate radio buttons to define policy environment and input database
 		count = 0;
 		Map<String, Integer> startUpOptionsStringsMap = new LinkedHashMap<>();
-		startUpOptionsStringsMap.put("LABSim GUI", count++);
-		startUpOptionsStringsMap.put("LABSim GUI, create Input Database", count++);
-		startUpOptionsStringsMap.put("LABSim GUI, create Input Database, update EUROMOD Policy Schedule", count++);
-		startUpOptionsStringsMap.put("LABSim GUI, create Input Database, update EUROMOD Policy Schedule, Run EUROMOD Light", count++);
+		startUpOptionsStringsMap.put("Run LABSim GUI", count++); //Option 0
+	//	startUpOptionsStringsMap.put("LABSim GUI, create Input Database", count++);
+		startUpOptionsStringsMap.put("Run LABSim GUI <= Select policies", count++); //Option 1
+		startUpOptionsStringsMap.put("Run LABSim GUI <= Select policies <= Modify policies", count++); //Option 2
+		startUpOptionsStringsMap.put("Run LABSim GUI <= Rebuild all database tables <= Select policies <= Modify policies", count++); //Option 3
 	    StartUpRadioButtons startUpOptions = new StartUpRadioButtons(startUpOptionsStringsMap);
 
 	    // combine button groups into a single form component
@@ -155,7 +158,7 @@ public class LABSimStart implements ExperimentBuilder {
 		String text = "<html><h2 style=\"text-align: center; font-size:120%;\">Choose the start-up processes for the simulation</h2>";
 
 		// sizing for GUI
-		int height = 250, width = 600;
+		int height = 250, width = 550;
 		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
 		if (screenSize.width < 850) {
 			width = (int) (screenSize.width * 0.95);
@@ -170,7 +173,7 @@ public class LABSimStart implements ExperimentBuilder {
 		// run through requested pre-processing steps
 		boolean skip = false;
 
-		if (choice_policy >= 3) {
+		if (choice_policy >= 2) {
 			// run EUROMOD
 //			CallEUROMOD.run();
 
@@ -187,11 +190,11 @@ public class LABSimStart implements ExperimentBuilder {
 		String inputFilename = "population_" + country;
 		Parameters.setInputFileName(inputFilename);
 
-		if (choice_policy >= 2) {
+		if (choice_policy >= 1) {
 			// update EUROMOD policy schedule
 
 			// load previously stored values for policy description and initiation year
-			MultiKeyCoefficientMap previousEUROMODfileInfo = ExcelAssistant.loadCoefficientMap("input" + File.separator + Parameters.EUROMODpolicyScheduleFilename + ".xlsx", country.toString(), 1, 2);
+			MultiKeyCoefficientMap previousEUROMODfileInfo = ExcelAssistant.loadCoefficientMap("input" + File.separator + Parameters.EUROMODpolicyScheduleFilename + ".xlsx", country.toString(), 1, 3);
 			Collection<File> euromodOutputTextFiles = FileUtils.listFiles(new File(Parameters.EUROMOD_OUTPUT_DIRECTORY), new String[]{"txt"}, true);
 			Iterator<File> fIter = euromodOutputTextFiles.iterator();
 			while (fIter.hasNext()) {
@@ -205,6 +208,7 @@ public class LABSimStart implements ExperimentBuilder {
 	        String[] columnNames = {
 					Parameters.EUROMODpolicyScheduleHeadingFilename,
 					Parameters.EUROMODpolicyScheduleHeadingScenarioYearBegins.replace('_', ' '),
+					Parameters.EUROMODpolicyScheduleHeadingScenarioSystemYear.replace('_', ' '),
 	        		Parameters.EUROMODpolicySchedulePlanHeadingDescription
 			};
 	        Object[][] data = new Object[euromodOutputTextFiles.size()][columnNames.length];
@@ -217,10 +221,15 @@ public class LABSimStart implements ExperimentBuilder {
 	        	} else {
 	        		data[row][1] = "";
 	        	}
+				if (previousEUROMODfileInfo.getValue(name, Parameters.EUROMODpolicyScheduleHeadingScenarioSystemYear) != null) {
+					data[row][2] = previousEUROMODfileInfo.getValue(name, Parameters.EUROMODpolicyScheduleHeadingScenarioSystemYear).toString();
+				} else {
+					data[row][2] = "";
+				}
         		if (previousEUROMODfileInfo.getValue(name, Parameters.EUROMODpolicySchedulePlanHeadingDescription) != null) {
-        			data[row][2] = previousEUROMODfileInfo.getValue(name, Parameters.EUROMODpolicySchedulePlanHeadingDescription).toString();
+        			data[row][3] = previousEUROMODfileInfo.getValue(name, Parameters.EUROMODpolicySchedulePlanHeadingDescription).toString();
 	        	} else {
-	        		data[row][2] = "";
+	        		data[row][3] = "";
 	        	}
 	        	row++;
 	        }
@@ -228,14 +237,22 @@ public class LABSimStart implements ExperimentBuilder {
 	        // create GUI display content
 	        String titleEUROMODtable = "Update EUROMOD Policy Schedule";
 	        String textEUROMODtable =
-				"<html><h2 style=\"text-align: center; font-size:120%;\">Select EUROMOD policies to use in simulation by entering a valid 'policy start year'</h2>" +
+				"<html><h2 style=\"text-align: center; font-size:120%;\">Select EUROMOD policies to use in simulation by entering a valid 'policy start year' and 'policy system year'</h2>" +
 				"<p style=\"text-align:center; font-size:120%;\">Policies for which no start year is provided will be omitted from the simulation.<br />" +
+				"<p style=\"text-align:center; font-size:120%;\">Policy system year must match the year selected in EUROMOD when creating the policy.<br />" +
 				"If no policy is selected for the start year of the simulation (<b>" + startYear + "</b>), then the earliest policy will be applied.<br />" +
 				"<b>Optional</b>: add a description of the scenario policy to record what the policy refers to.</p>";
-	        ScenarioTable tableEUROMODscenarios = new ScenarioTable(textEUROMODtable, columnNames, data);	        
+	        ScenarioTable tableEUROMODscenarios = new ScenarioTable(textEUROMODtable, columnNames, data);
 
 	        // pass content to display
-	        FormattedDialogBoxNonStatic policyScheduleBox = new FormattedDialogBoxNonStatic(titleEUROMODtable, null, 900, 300 + euromodOutputTextFiles.size()*11, tableEUROMODscenarios, true);
+			FormattedDialogBoxNonStatic policyScheduleBox;
+
+			if (choice_policy == 3) { // If full rebuild of the database is required, disabled the "Keep existing policy schedule" button by overriding the display box
+				policyScheduleBox = new FormattedDialogBoxNonStatic(titleEUROMODtable, null, 900, 300 + euromodOutputTextFiles.size()*11, tableEUROMODscenarios, true, false);
+			}
+			else {
+				policyScheduleBox = new FormattedDialogBoxNonStatic(titleEUROMODtable, null, 900, 300 + euromodOutputTextFiles.size()*11, tableEUROMODscenarios, true, true);
+			}
 
 	        // return from table
 	        skip  = policyScheduleBox.isSkip();
@@ -245,10 +262,14 @@ public class LABSimStart implements ExperimentBuilder {
 		    	constructAggregatePopulationCSVfile(country);
 	        }
 		}
-		
-		if(choice_policy >= 1 && !skip) {
-			// need to (re)create input database files from new csv files
+
+		if(choice_policy == 3) {
+			// need to (re)create all database tables
 			createDatabaseTablesFromCSVfile(country);
+		}
+		else if(choice_policy >= 1 && !skip) {
+			// need to (re)create donor database files from new csv files
+			createDonorDatabaseTablesFromCSVfile(country);
 		}
 	}
 
@@ -319,16 +340,16 @@ public class LABSimStart implements ExperimentBuilder {
 	/**
 	 *
 	 * Constructs the donor population based on the data stored in .txt files produced by EUROMOD.
-	 * Note that in order to store this information in an efficient way, we make the important 
-	 * assumption that all EUROMOD output for a particular country is derived from the same 
-	 * input population (this is plausible, given that EUROMOD is a static microsimulation). 
-	 * When running EUROMOD, the most recent input population for a particular country should be 
+	 * Note that in order to store this information in an efficient way, we make the important
+	 * assumption that all EUROMOD output for a particular country is derived from the same
+	 * input population (this is plausible, given that EUROMOD is a static microsimulation).
+	 * When running EUROMOD, the most recent input population for a particular country should be
 	 * used (currently IT_2014_a2.txt and UK_2013_a3.txt).
-	 * 
+	 *
 	 * This method constructs a .csv file that aggregates the information from multiple EUROMOD
 	 * output .txt files, picking up the relevant columns for each EUROMOD policy scenario, that
 	 * will eventually be parsed into the JAS-mine input database.
-	 * 
+	 *
 	 * @return The name of the created CSV file (without the .csv extension)
 	 *
 	 */
@@ -490,43 +511,46 @@ public class LABSimStart implements ExperimentBuilder {
 	private static void createDatabaseTablesFromCSVfile(Country country) {
 
 		// display a dialog box to let the user know what is happening
-		String title = "Creating input database tables";
-		String text = "<html><h2 align=center style=\"font-size:120%;\">Constructing input database tables from "
-	 			+ "population_" + country.toString() + ".csv file "
-					+ "for " + country.getCountryName() + " based on the EUROMOD policy schedule.  "
-							+ "Please wait...";
+		String title = "Building all database tables";
+		String text = "<html><h2 align=center style=\"font-size:120%;\">Building initial and donor database tables "
+				+ "for " + country.getCountryName() + " Please wait...";
+
 		JFrame databaseFrame = FormattedDialogBox.create(title, text, 800, 120, null, false, false);
 
 		// start work
 		Connection conn = null;
 		Statement stat = null;
-        try {        		        
-        	Class.forName("org.h2.Driver");
-	        conn = DriverManager.getConnection("jdbc:h2:input" + File.separator + "input", "sa", "");
 
+        try {
+        	Class.forName("org.h2.Driver");
+	        conn = DriverManager.getConnection("jdbc:h2:input" + File.separator + "input;LOG=0;CACHE_SIZE=2097152;AUTO_SERVER=TRUE", "sa", "");
 			Parameters.setCountryBenefitUnitName(); //Specify names of benefit unit variables
-	    //  Parameters.setInitialInputFileName("population_" + country.toString() + "_initial");
-			Parameters.setInitialInputFileName("population_initial_" + country.toString() + "_" + startYear);
+			//  Parameters.setInitialInputFileName("population_" + country.toString() + "_initial");
+			Parameters.setInitialInputFileName("population_initial_" + country.toString());
 //	        Parameters.setInputFileName("population_UK");
-	        
-	        //This calls a method creating both the initial and donor population tables. 
-	        SQLdataParser.createDatabaseTablesFromCSVfile(country, Parameters.getInputFileName(), Parameters.getInitialInputFileName(), startYear, conn);
 			
-        } 
-        catch(ClassNotFoundException|SQLException e){
-        	if(e instanceof ClassNotFoundException) {
-	    		 System.out.println( "ERROR: Class not found: " + e.getMessage() + "\nCheck that the input.h2.db "
-	        		+ "exists in the input folder.  If not, unzip the input.h2.zip file and store the resulting "
-	        		+ "input.h2.db in the input folder!\n");
-	    	}
-	    	else {
-	    		 throw new IllegalArgumentException("SQL Exception thrown! " + e.getMessage());
-	    	}            
-        }
+			//This calls a method creating both the donor population tables and initial populations for every year between minStartYear and maxStartYear.
+			SQLdataParser.createDatabaseTablesFromCSVfile(country, Parameters.getInputFileName(), Parameters.getInitialInputFileName(), minStartYear, maxStartYear, conn);
+
+			conn.close();
+			conn = DriverManager.getConnection("jdbc:h2:input" + File.separator + "input;LOG=0;CACHE_SIZE=2097152;AUTO_SERVER=TRUE", "sa", "");
+
+		}
+		catch(ClassNotFoundException|SQLException e){
+			if(e instanceof ClassNotFoundException) {
+				System.out.println( "ERROR: Class not found: " + e.getMessage() + "\nCheck that the input.h2.db "
+						+ "exists in the input folder.  If not, unzip the input.h2.zip file and store the resulting "
+						+ "input.h2.db in the input folder!\n");
+			}
+			else {
+				throw new IllegalArgumentException("SQL Exception thrown! " + e.getMessage());
+			}
+		}
+
 		finally {
 			try {
-				  if (stat != null) { stat.close(); }
-				  if (conn != null) { conn.close(); }
+				if (stat != null) { stat.close(); }
+				if (conn != null) { conn.close(); }
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -534,6 +558,61 @@ public class LABSimStart implements ExperimentBuilder {
 		}
 
 		// finish off
-        databaseFrame.setVisible(false);
+		databaseFrame.setVisible(false);
+	}
+
+	/**
+	 * Only rebuild donor tables in the database
+	 * @param country
+	 */
+	private static void createDonorDatabaseTablesFromCSVfile(Country country) {
+
+		// display a dialog box to let the user know what is happening
+		String title = "Building donor database tables";
+		String text = "<html><h2 align=center style=\"font-size:120%;\">Building donor database tables from "
+				+ "population_" + country.toString() + ".csv file "
+				+ "for " + country.getCountryName() + " based on the EUROMOD policy schedule.  "
+				+ "Please wait...";
+		JFrame databaseFrame = FormattedDialogBox.create(title, text, 800, 120, null, false, false);
+
+		// start work
+		Connection conn = null;
+		Statement stat = null;
+		try {
+			Class.forName("org.h2.Driver");
+			conn = DriverManager.getConnection("jdbc:h2:input" + File.separator + "input;LOG=0;CACHE_SIZE=2097152;AUTO_SERVER=TRUE", "sa", "");
+
+			Parameters.setCountryBenefitUnitName(); //Specify names of benefit unit variables
+			Parameters.setInitialInputFileName("population_initial_" + country.toString());
+
+			//This calls a method creating the donor population tables
+			SQLdataParser.createDonorDatabaseTablesFromCSVFile(country, Parameters.getInputFileName(), startYear, conn);
+
+			conn.close();
+			conn = DriverManager.getConnection("jdbc:h2:input" + File.separator + "input;LOG=0;CACHE_SIZE=2097152;AUTO_SERVER=TRUE", "sa", "");
+
+		}
+		catch(ClassNotFoundException|SQLException e){
+			if(e instanceof ClassNotFoundException) {
+				System.out.println( "ERROR: Class not found: " + e.getMessage() + "\nCheck that the input.h2.db "
+						+ "exists in the input folder.  If not, unzip the input.h2.zip file and store the resulting "
+						+ "input.h2.db in the input folder!\n");
+			}
+			else {
+				throw new IllegalArgumentException("SQL Exception thrown! " + e.getMessage());
+			}
+		}
+		finally {
+			try {
+				if (stat != null) { stat.close(); }
+				if (conn != null) { conn.close(); }
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+
+		// finish off
+		databaseFrame.setVisible(false);
 	}
 }

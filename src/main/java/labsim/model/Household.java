@@ -52,6 +52,9 @@ public class Household implements EventListener, IDoubleSource {
     @Column(name ="size")
     private int size; //Number of individuals in the family
 
+//    @Column(name="weight_equivalised")
+//    private double weight_equivalised = 0.;
+
     @Transient
     private Set<BenefitUnit> benefitUnitsInHouseholdSet;
 
@@ -82,13 +85,19 @@ public class Household implements EventListener, IDoubleSource {
         size = 0;
     }
 
-    //Overloaded constructor taking a set of benefit units as input and adding them to the household
+    //Overloaded constructor taking a set of benefit units as input and adding them to the new household
     public Household(LinkedHashSet<BenefitUnit> benefitUnitsToAdd) {
         this(); //Refers to the basic constructor Household()
 
         for(BenefitUnit benefitUnit : benefitUnitsToAdd) {
             addBenefitUnitToHousehold(benefitUnit);
         }
+    }
+
+    //Overloaded constructor taking a benefit unit as input and adding it to the new household
+    public Household(BenefitUnit benefitUnitToAdd) {
+        this(); //Refers to the basic constructor Household()
+        addBenefitUnitToHousehold(benefitUnitToAdd);
     }
 
     /*
@@ -99,7 +108,8 @@ public class Household implements EventListener, IDoubleSource {
 
         //Calculate size
         updateSize();
-
+        //Calculate equivalised weight
+        calculateEquivalisedWeight();
     }
 
     protected void updateSize() {
@@ -113,6 +123,7 @@ public class Household implements EventListener, IDoubleSource {
     //Add a benefitUnit to the household
     public void addBenefitUnitToHousehold(BenefitUnit benefitUnit) {
         benefitUnitsInHouseholdSet.add(benefitUnit);
+        // TODO: Benefit Units should contained in the household should update their size here. Or in BU constructors, it should change size
         size = size + benefitUnit.getSize();
 
         //Whenever a benefit unit is added to household, update occupants household id to match the household
@@ -130,6 +141,13 @@ public class Household implements EventListener, IDoubleSource {
         //Check for benefit units remaining in the household - if none, remove the household
         if (benefitUnitsInHouseholdSet.size() == 0) {
             model.removeHousehold(this);
+        }
+    }
+
+    //Calculate household's equivalised weight
+    public void calculateEquivalisedWeight(){
+        for (BenefitUnit BU : benefitUnitsInHouseholdSet) {
+
         }
     }
 

@@ -161,7 +161,6 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	@Transient
 	private boolean toLeaveSchool = false;
 
-
 	@Transient
 	private boolean toBePartnered = false;
 
@@ -169,10 +168,10 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	private Person partner;
 	
 	@Column(name="idpartner")
-	private Long partnerId;		//Note, must not use primitive long, as long cannot hold 'null' value, i.e. if the person has no partner
+	private Long id_partner;		//Note, must not use primitive long, as long cannot hold 'null' value, i.e. if the person has no partner
 	
 	@Transient
-	private Long partnerId_lag1 = null; 
+	private Long id_partner_lag1 = null;
 	
 	//EUROMOD's DWT variable - demographic weight applies to the benefitUnit, rather than the individual.
 	//So initialize the person weights with the benefitUnit weights and let evolve seperately from
@@ -184,19 +183,19 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	private double weight;			// This value is to create (re)weights for two-person benefitUnits
 
 	@Column(name="idmother")
-	private Long motherId;
+	private Long id_mother;
 	
 	@Column(name="idfather")
-	private Long fatherId;
+	private Long id_father;
 	
 	@Transient
 	private BenefitUnit benefitUnit;
 	
 	@Column(name=Parameters.BENEFIT_UNIT_VARIABLE_NAME)
-	private long benefitUnitId;
+	private long id_benefitUnit;
 
 	@Column(name="idhh")
-	private long householdId;
+	private long id_household;
 
 	@Column(name="dhe")
 	private Double dhe = 0.; //Continuous variable for health
@@ -238,10 +237,10 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	private Series.Double yearlyEquivalisedConsumptionSeries;
 
 	@Column(name="s_index") //Alternatively could be kept in a Series, which would allow access to previous values. But more efficient to persist a single value to CSV / database
-	private Double sIndex;
+	private Double sIndex = Double.NaN;
 
 	@Column(name="s_index_normalised")
-	private Double sIndexNormalised;
+	private Double sIndexNormalised = Double.NaN;
 
 	@Transient
 	private LinkedHashMap<Integer, Double> sIndexYearMap;
@@ -320,13 +319,13 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	private double desiredEarningsPotentialDiff;
 
 	@Transient
-	private Long originalID;
+	private Long id_original;
 
 	@Transient
-	private Long originalBUID;
+	private Long id_bu_original;
 
 	@Transient
-	private Long originalHHID;
+	private Long id_hh_original;
 
 	@Transient
 	private Person originalPartner;
@@ -363,6 +362,8 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	
 	@Transient
 	private Household_status originalHHStatus;
+
+	private Double wageRegressionRandomComponent = null;
 	
 	//TODO: Remove when no longer needed.  Used to calculate mean score of employment selection regression.
 	public static double scoreMale = 0.;
@@ -409,8 +410,8 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		key = new PanelEntityKey(personIdCounter++);
 
 		this.dgn = gender;
-		this.motherId = mother.getKey().getId();
-		this.fatherId = mother.getPartner().getKey().getId();
+		this.id_mother = mother.getKey().getId();
+		this.id_father = mother.getPartner().getKey().getId();
 		this.dehm_c3 = mother.getDeh_c3();
 		this.dehf_c3 = mother.getPartner().getDeh_c3();
 		this.dcpen = Indicator.False;
@@ -418,7 +419,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		this.dlltsd = Indicator.False;
 		this.dlltsd_lag1 = Indicator.False;
 		this.women_fertility = Indicator.False;
-		this.benefitUnitId = mother.getBenefitUnitId();
+		this.id_benefitUnit = mother.getId_benefitUnit();
 		this.benefitUnit = mother.benefitUnit;
 		this.benefitUnit.setHousehold(mother.getBenefitUnit().getHousehold());
 		this.dag = 0;
@@ -432,7 +433,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		this.household_status = Household_status.Parents;
 		this.labourSupplyWeekly = Labour.ZERO;			//Will be updated in Labour Market Module when the person stops being a student
 		this.hoursWorkedWeekly = labourSupplyWeekly.getHours();
-		this.householdId = mother.getBenefitUnit().getHouseholdId();
+		this.id_household = mother.getBenefitUnit().getId_household();
 //		setDeviationFromMeanRetirementAge();			//This would normally be done within initialisation, but the line above has been commented out for reasons given...
 		yearlyEquivalisedDisposableIncomeSeries = new Series.Double(this, DoublesVariables.EquivalisedIncomeYearly);
 		yearlyEquivalisedConsumptionSeries = new Series.Double(this, DoublesVariables.EquivalisedConsumptionYearly);
@@ -447,9 +448,9 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	public Person (Person originalPerson) {
 		this(personIdCounter++);
 
-		this.originalHHID = originalPerson.householdId;
-		this.originalBUID = originalPerson.benefitUnitId;
-		this.originalID = originalPerson.key.getId();
+		this.id_hh_original = originalPerson.id_household;
+		this.id_bu_original = originalPerson.id_benefitUnit;
+		this.id_original = originalPerson.key.getId();
 		
 		this.dag = originalPerson.dag;
 		this.ageGroup = originalPerson.ageGroup;
@@ -507,10 +508,10 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		this.toGiveBirth = originalPerson.toGiveBirth;
 		this.toLeaveSchool = originalPerson.toLeaveSchool;
 		this.partner = originalPerson.partner;
-		this.partnerId = originalPerson.partnerId;
+		this.id_partner = originalPerson.id_partner;
 		this.weight = originalPerson.weight;
-		this.motherId = originalPerson.motherId;
-		this.fatherId = originalPerson.fatherId;
+		this.id_mother = originalPerson.id_mother;
+		this.id_father = originalPerson.id_father;
 //		this.benefitUnit = person.benefitUnit;
 //		this.householdId = person.householdId;
 		this.dhe = originalPerson.dhe;
@@ -555,9 +556,9 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	public Person (Person originalPerson, boolean alignmentTrueFalse) {
 		this(personIdCounter++);
 
-		this.originalHHID = originalPerson.householdId;
-		this.originalBUID = originalPerson.benefitUnitId;
-		this.originalID = originalPerson.key.getId();
+		this.id_hh_original = originalPerson.id_household;
+		this.id_bu_original = originalPerson.id_benefitUnit;
+		this.id_original = originalPerson.key.getId();
 		
 		this.dag = originalPerson.dag;
 		this.dag_sq = originalPerson.dag_sq;
@@ -617,7 +618,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		
 		
 		if (!model.isUseWeights()) {
-			labourSupplyWeekly = Labour.convertHoursToLabour(model.getInitialHoursWorkedWeekly().get(originalID).intValue(), getDgn()); //TODO: Why is this initialised in this way instead of the simpler commented out way below?
+			labourSupplyWeekly = Labour.convertHoursToLabour(model.getInitialHoursWorkedWeekly().get(id_original).intValue(), getDgn()); //TODO: Why is this initialised in this way instead of the simpler commented out way below?
 		} else {
 			labourSupplyWeekly = Labour.convertHoursToLabour(model.getInitialHoursWorkedWeekly().get(key.getId()).intValue(), getDgn());
 		}
@@ -696,7 +697,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		if(partner != null) {
 			household_status = Household_status.Couple;
 		}
-		else if(motherId != null || fatherId != null) {
+		else if(id_mother != null || id_father != null) {
 			household_status = Household_status.Parents;
 		}
 		else household_status = Household_status.Single;
@@ -796,7 +797,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		//Update years in partnership (before the lagged value is updated)
 		dcpyy_lag1 = dcpyy; //Update lag value outside of updateVariables() method
 		if(partner != null) {
-			if(partnerId.equals(partnerId_lag1)) {
+			if(id_partner.equals(id_partner_lag1)) {
 				dcpyy++; 
 			}
 			else dcpyy = 0; 
@@ -816,7 +817,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		//For those who are moving out, evaluate whether they should have stayed with parents and if yes, set the adultchildflag to true
 		boolean toLeaveHome = Parameters.getRegLeaveHomeP1a().event(this, Person.DoublesVariables.class); //If true, should leave home
 		if (les_c4.equals(Les_c4.Student)) {
-			adultchildflag = Indicator.True; //Students not allowed to leave home to match filtering conditon TODO: Double check this
+			adultchildflag = Indicator.True; //Students not allowed to leave home to match filtering conditon
 		}
 		else {
 			if (!toLeaveHome) { //If at the age to leave home but regression outcome is negative, person has adultchildflag set to true (although they still set up a new benefitUnit in the simulation, it's treated differently in the labour supply)
@@ -846,7 +847,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 			}
 		}
 	}
-	
+
 	//TODO: Should continuous health status and long-term sickness / disability be related somehow? 
 	//Health process defines health using H1a or H1b process
 	protected void health() {		
@@ -854,7 +855,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		if((dag >= 16 && dag <= 29) && les_c4.equals(Les_c4.Student) && leftEducation == false) {
 //			System.out.println("Persid " + getKey().getId() + " Aged " + dag + " Activity status " + les_c4 + " Who left education? " + leftEducation + " assigned to process H1a " + " Gender " + dgn + " BenefitUnit income qtile: " + getHousehold().getYdses_c5() + " BenefitUnit income qtile lag: " + getHousehold().getYdses_c5_lag1() +
 //					" BenefitUnit composition is " + getHousehold().getDhhtp_c4() + " Lag1 of benefitUnit composition is " + getHousehold().getDhhtp_c4_lag1() + "cloned? " + isClonedFlag());
-			dhe = Parameters.getRegHealthH1a().getScore(this, Person.DoublesVariables.class);
+			dhe = Parameters.getRegHealthH1a().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("H1a");
 //			System.out.println("year is " + model.getYear() + "Persid " + getKey().getId() + " Was assigned dhe " + dhe + " And lagged dhe is " + dhe_lag1 + " In the H1a process");
 		}
 		
@@ -864,7 +865,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		else if(dag >= 16) {
 //			System.out.println("Persid " + getKey().getId() + " Aged " + dag + " Activity status " + les_c4 + " Who left education? " + leftEducation + " assigned to process H1b " + " Gender " + dgn + " BenefitUnit income qtile: " + getHousehold().getYdses_c5() + " BenefitUnit income qtile lag: " + getHousehold().getYdses_c5_lag1() +
 //					" BenefitUnit composition is " + getHousehold().getDhhtp_c4() + " Lag1 of benefitUnit composition is " + getHousehold().getDhhtp_c4_lag1() + " Disabled status: " + dlltsd + " And lagged disabled status: " + dlltsd_lag1);
-			dhe = Parameters.getRegHealthH1b().getScore(this, Person.DoublesVariables.class);
+			dhe = Parameters.getRegHealthH1b().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("H1b");
 //			System.out.println("Persid " + getKey().getId() + " Was assigned dhe " + dhe + " And lagged dhe is " + dhe_lag1 + " In the H1b process");
 			
 			//If age is over 16 and individual is not in continuous education, also follow process H2b to calculate the probability of long-term sickness / disability:
@@ -914,7 +915,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 
 		//If age is between 16 - 45 and individual has not continuously been in education, follow process E1b:
 		//Either individual is currently a student and has left education at some point in the past (so returned) or individual is not a student so has not been in continuous education:
-		else if(dag <= 45 && (!les_c4.equals(Les_c4.Student) || leftEducation)) { //leftEducation is initialised to false and updated to true when individual leaves education for the first time (and never reset).
+		else if(dag <= 35 && (!les_c4.equals(Les_c4.Student) || leftEducation)) { //leftEducation is initialised to false and updated to true when individual leaves education for the first time (and never reset).
 			//TODO: If regression outcome of process E1b is true, set activity status to student and der (return to education indicator) to true?
 			if(Parameters.getRegEducationE1b().event(this, Person.DoublesVariables.class)) { //If event is true, re-enter education.  If event is false, do nothing (maintain current activity_status)
 				
@@ -924,7 +925,6 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 				setDer(Indicator.True);
 				setDed(Indicator.True);
 				labourSupplyWeekly = Labour.ZERO; //Assume no part-time work while studying
-				//TODO: Note that individuals re-entering education do not have a new level of education set. (They don't "leave school")
 			}
 			else if (les_c4.equals(Les_c4.Student)){ //If activity status is student but regression to be in education was evaluated to false, remove student status
 				setLes_c4(Les_c4.NotEmployed);
@@ -932,9 +932,10 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 				toLeaveSchool = true; //Test what happens if people who returned to education leave again
 			}
 		}
-		else if (dag > 45 && les_c4.equals(Les_c4.Student)) { //People above 45 shouldn't be in education, so if someone re-entered at 45 in previous step, force out
+		else if (dag > 35 && les_c4.equals(Les_c4.Student)) { //People above 45 shouldn't be in education, so if someone re-entered at 35 in previous step, force out
 			setLes_c4(Les_c4.NotEmployed);
 			setDed(Indicator.False);
+			toLeaveSchool = true; //Test what happens if people who returned to education leave again
 		}
 		
 
@@ -1036,38 +1037,86 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 
 
 	protected void updatePotentialEarnings() {
-		
+
 		LinearRegression regWages;
-		if(dgn.equals(Gender.Male)) {
-			regWages = Parameters.getRegWagesMales();
-			
+		double logPotentialEarnings;
+
+		// Added an option of drawing the random component only once per simulation. To do that, check if the variable is null - if not, it needs to be drawn. Otherwise, use its value.
+		if (model.fixRegressionStochasticComponent) {
+
+			if (getWageRegressionRandomComponent() == null) {
+				if (getDgn().equals(Gender.Male)) {
+					setWageRegressionRandomComponent(getRandomGaussianAndRMSEProductForRegression("Wages_Males"));
+				} else {
+					setWageRegressionRandomComponent(getRandomGaussianAndRMSEProductForRegression("Wages_Females"));
+				}
+			}
+
+			if(dgn.equals(Gender.Male)) {
+				regWages = Parameters.getRegWagesMales();
+
+			} else {
+				regWages = Parameters.getRegWagesFemales();
+			}
+			logPotentialEarnings = regWages.getScore(this, Person.DoublesVariables.class) + getWageRegressionRandomComponent();
+
+		} else {
+
+			if (dgn.equals(Gender.Male)) {
+				logPotentialEarnings = Parameters.getRegWagesMales().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("Wages_Males");
+			} else {
+				logPotentialEarnings = Parameters.getRegWagesFemales().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("Wages_Females");
+			}
 		}
-		else {
-			regWages = Parameters.getRegWagesFemales();
-		}
-		double logPotentialEarnings = regWages.getScore(this, Person.DoublesVariables.class); //Note: RMSE is taken into account by having ResStanDev as a coefficient in Excel and drawing a random number as the value of that covariate when the estimate is calculated
-		potentialEarnings = Math.exp(logPotentialEarnings); //Wage equation uses ln(wages) so take exp() to get back to levels.
-//		System.out.println("Potential earnings: " + potentialEarnings + "Log potential earnings " + logPotentialEarnings);
-		if(model.debugCommentsOn) {
+
+		// Uprate and set level of potential earnings
+		double upratedLevelPotentialEarnings = Math.exp(logPotentialEarnings)* getUpratingFactorForMonetaryValues();
+		setPotentialEarnings(upratedLevelPotentialEarnings);
+
+		if (model.debugCommentsOn) {
 			log.debug("logPotentialEarnings: " + logPotentialEarnings + ", potentialEarnings: " + potentialEarnings);
 		}
-		
-		
+	}
+
+	public double getUpratingFactorForMonetaryValues() {
+		return Parameters.upratingFactorForMonetaryValuesMap.get(model.getYear()); //Get uprating factor for a given simulated year (given the year for which wage equation was estimated as specified in Parameters.BASE_PRICE_YEAR
 	}
 	
 	protected void updateNonEmploymentIncome() {
 
+		// Uprating factor is only used for years later than 2017 to account for growth. Set to 1 as default for other years.
+		// This has now been replaced by estimating capital and pension income in base price year (2017) values, and uprating to each simulated year, by use of the uprating factor for monetary values below.
+		/*
+		double upratingFactor = 1;
+		if (model.getYear() > model.getTimeTrendStopsInMonetaryProcesses()) {
+			upratingFactor = getUpratingFactorForMonetaryValues();
+		}
+		 */
+
+		// Capital income and pensions are monthly
 			if (dag >= Parameters.MIN_AGE_TO_HAVE_INCOME) {
 				if (dag <= 29 && les_c4.equals(Les_c4.Student) && leftEducation == false) {
-					ypncp = Parameters.getRegIncomeI3a().getScore(this, Person.DoublesVariables.class); //Capital income only
-//					yptciihs_dv = Parameters.getRegIncomeI1a().getScore(this, Person.DoublesVariables.class);
+					boolean hasCapitalIncome = Parameters.getRegIncomeI3a_selection().event(this, Person.DoublesVariables.class); // If true, individual receives capital income ypncp. Amount modelled in the next step.
+					if (hasCapitalIncome) {
+						double capinclevel = Math.sinh(Parameters.getRegIncomeI3a().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("I3a"))*getUpratingFactorForMonetaryValues();
+						ypncp = Math.log(capinclevel + Math.sqrt(capinclevel * capinclevel + 1.0)); //Capital income amount
+					}
+					else ypncp = 0.; //If no capital income, set amount to 0
 				}
 				else if ((les_c4.equals(Les_c4.Student) && leftEducation == true) || !les_c4.equals(Les_c4.Student)) {
-					ypncp = Parameters.getRegIncomeI3b().getScore(this, Person.DoublesVariables.class); //Capital income only
-//					yptciihs_dv = Parameters.getRegIncomeI1b().getScore(this, Person.DoublesVariables.class);
+					boolean hasCapitalIncome = Parameters.getRegIncomeI3b_selection().event(this, Person.DoublesVariables.class); // If true, individual receives capital income ypncp. Amount modelled in the next step.
+					if (hasCapitalIncome) {
+						double capinclevel = Math.sinh(Parameters.getRegIncomeI3b().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("I3b"))*getUpratingFactorForMonetaryValues();
+						ypncp = Math.log(capinclevel + Math.sqrt(capinclevel * capinclevel + 1.0)); //Capital income amount
+					}
+					else ypncp = 0.; //If no capital income, set amount to 0
 				}
-				if (les_c4.equals(Les_c4.Retired)) { //TODO: Do we want to restrict pension income to those who are retired or allow pension income for working people above age of retirement too?
-					ypnoab = Parameters.getRegIncomeI3c().getScore(this, Person.DoublesVariables.class);
+				if (les_c4.equals(Les_c4.Retired)) { // Retirement decision is modelled in the retirement process. Here only the amount of pension income for retired individuals is modelled.
+					double pensioninclevel = Math.sinh(Parameters.getRegIncomeI3c().getScore(this, Person.DoublesVariables.class) + getRandomGaussianAndRMSEProductForRegression("I3c"))*getUpratingFactorForMonetaryValues();
+					ypnoab = Math.log(pensioninclevel + Math.sqrt(pensioninclevel * pensioninclevel + 1.0));
+					if (ypnoab < 0 ) {
+						ypnoab = 0.;
+					}
 				}
 
 				double capital_income_multiplier = model.getSavingRate()/Parameters.SAVINGS_RATE;
@@ -1201,17 +1250,15 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		if (benefitUnit.getEquivalisedDisposableIncomeYearly() != null) {
 			income = benefitUnit.getEquivalisedDisposableIncomeYearly();
 		}
-		else {
-			income = -9999.99;
-		}
+
 
 		if (getLes_c4().equals(Les_c4.Retired)) {
 			setYearlyEquivalisedConsumption(income);
-		} else if (income >= 0){
+		} else if (income > 0){
 			setYearlyEquivalisedConsumption((1-model.getSavingRate())*income);
 		}
 		else {
-			setYearlyEquivalisedConsumption(-9999.99);
+			setYearlyEquivalisedConsumption(0.);
 		}
 	}
 
@@ -1236,7 +1283,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		dehsp_c3_lag1 = dehsp_c3; //Update lag(1) of partner's education status
 		dhesp_lag1 = dhesp; //Update lag(1) of partner's health
 		ynbcpdf_dv_lag1 = ynbcpdf_dv; //Lag(1) of difference between own and partner's gross personal non-benefit income
-		partnerId_lag1 = partnerId; //Lag(1) of partner's ID
+		id_partner_lag1 = id_partner; //Lag(1) of partner's ID
 		dcpagdf_lag1 = dcpagdf; //Lag(1) of age difference between partners
 		lesdf_c4_lag1 = lesdf_c4; //Lag(1) of own and partner's activity status
 		dcpst_lag1 = dcpst; //Lag(1) of partnership status 
@@ -1274,6 +1321,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		
 		if(les_c4.equals(Les_c4.EmployedOrSelfEmployed)) {
 			//Increment work history by 12 months for those in employment
+			//TOOD: I don't think liwwh is used anywhere in the model at the moment, perhaps can be deleted (PB, 01.11.2021)
 			liwwh = liwwh+12; 
 		}
 		
@@ -1378,7 +1426,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		}
 
 		newHousehold.addBenefitUnitToHousehold(this.benefitUnit); //Add benefit unit of the person moving out to the new household
-		householdId = newHousehold.getId();
+		id_household = newHousehold.getId();
 
 		newHousehold.initializeFields();
 
@@ -1418,6 +1466,13 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		}
 		else {
 			newBU = new BenefitUnit(this);
+			if (newBU.getHousehold() != null) {
+				benefitUnit.getHousehold().addBenefitUnitToHousehold(newBU); // Add the newly created BU to the household
+			}
+			else {
+				Household newHosuehold = new Household(newBU);
+				model.getHouseholds().add(newHosuehold);
+			}
 		}
 
 
@@ -1428,18 +1483,18 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		//Move children.  By default they will follow the mother, but if no mother, they will follow the father
 		if(dgn.equals(Gender.Female)) {
 			for(Person child: benefitUnit.getChildren()) {
-				if(child.getMotherId() != null) {
-					if(child.getMotherId().equals(key.getId())) {		//Child could be a sibling, or even this person, because of the way people are originally distributed amongst benefitUnits, preserving the original input data structure!  Need this to ensure only genuine children of this person follow them to a new benefitUnit.
+				if(child.getId_mother() != null) {
+					if(child.getId_mother().equals(key.getId())) {		//Child could be a sibling, or even this person, because of the way people are originally distributed amongst benefitUnits, preserving the original input data structure!  Need this to ensure only genuine children of this person follow them to a new benefitUnit.
 						childrenToRemoveFromHousehold.add(child);		//Concurrent modification exception means that we have to remove children outside of loop over children
-						if(child.getFatherId() != null && partner != null && !child.getFatherId().equals(partner.getKey().getId()) ) {
-							child.fatherId = null;
+						if(child.getId_father() != null && partner != null && !child.getId_father().equals(partner.getKey().getId()) ) {
+							child.id_father = null;
 //							child.setFatherId(null);				//Shows that child is no longer living with natural father. 
 //							child.setFatherId(partner.getKey().getId());	//XXX: Or should we set to partner's id, i.e. step-dad?
 						}
 					}
 					else {
 						for(Person teenageMother: benefitUnit.getChildren()) {		//If mother of child is actually one of the children themselves (in the case of a teenage mother living with parents, we also need to move this child)
-							if(child.getMotherId().equals(teenageMother.getKey().getId())) {
+							if(child.getId_mother().equals(teenageMother.getKey().getId())) {
 								childrenToRemoveFromHousehold.add(child);
 							}
 						}
@@ -1449,11 +1504,11 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 			if(partner != null) {		//Partner will be male
 				BenefitUnit partnerBenefitUnit = partner.getBenefitUnit();
 				Set<Person> partnerHouseholdChildren = partnerBenefitUnit.getChildren();
-				log.debug("person " + this.getKey().getId() + ", old benefitUnit " + benefitUnit.getKey().getId() + ", new benefitUnit " + newBU.getKey().getId() + ", partner " + partner.getKey().getId() + ", partner benefitUnit " + partner.getBenefitUnitId() + " = " + partner.getBenefitUnit().getKey().getId() + ", partnerHouseholdChildren " + partnerHouseholdChildren);
+				log.debug("person " + this.getKey().getId() + ", old benefitUnit " + benefitUnit.getKey().getId() + ", new benefitUnit " + newBU.getKey().getId() + ", partner " + partner.getKey().getId() + ", partner benefitUnit " + partner.getId_benefitUnit() + " = " + partner.getBenefitUnit().getKey().getId() + ", partnerHouseholdChildren " + partnerHouseholdChildren);
 //				if(partnerHouseholdChildren != null) {
 					for(Person child: partnerHouseholdChildren) {
-						if(child.getMotherId() == null) {		//Only move if they don't have a mother
-							if(child.getFatherId().equals(partner.getKey().getId())) {
+						if(child.getId_mother() == null) {		//Only move if they don't have a mother
+							if(child.getId_father().equals(partner.getKey().getId())) {
 								childrenToRemoveFromPartnerHousehold.add(child);		//Concurrent modification exception means that we have to remove children outside of loop over children
 							}
 						}	
@@ -1473,8 +1528,8 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 			
 				
 			for(Person child: benefitUnit.getChildren()) {
-				if(child.getMotherId() == null && child.getFatherId() != null) {			//Only move if they don't have a mother 
-					if(child.getFatherId().equals(key.getId())) {
+				if(child.getId_mother() == null && child.getId_father() != null) {			//Only move if they don't have a mother
+					if(child.getId_father().equals(key.getId())) {
 						childrenToRemoveFromHousehold.add(child);		//Concurrent modification exception means that we have to remove children outside of loop over children
 					}
 				}
@@ -1483,18 +1538,18 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 			if(partner != null) {		//Partner will be female, so their children will follow her to the new home
 				BenefitUnit partnerBenefitUnit = partner.getBenefitUnit();
 				for(Person child: partnerBenefitUnit.getChildren()) {
-					if(child.getMotherId() != null) {
-						if(child.getMotherId().equals(partner.getKey().getId())) {		//Child could be a sibling, or even this person, because of the way people are originally distributed amongst benefitUnits, preserving the original input data structure!  Need this to ensure only genuine children of this person follow them to a new benefitUnit.
+					if(child.getId_mother() != null) {
+						if(child.getId_mother().equals(partner.getKey().getId())) {		//Child could be a sibling, or even this person, because of the way people are originally distributed amongst benefitUnits, preserving the original input data structure!  Need this to ensure only genuine children of this person follow them to a new benefitUnit.
 							childrenToRemoveFromPartnerHousehold.add(child);		//Concurrent modification exception means that we have to remove children outside of loop over children
-							if(child.getFatherId() != null && !child.getFatherId().equals(key.getId()) ) {
-								child.fatherId = null;
+							if(child.getId_father() != null && !child.getId_father().equals(key.getId()) ) {
+								child.id_father = null;
 //								child.setFatherId(null);				//Shows that child is no longer living with natural father
 //								child.setFatherId(partner.getKey().getId());	//XXX: Or should we set to partner's id, i.e. step-dad?
 							}
 						}
 						else {
 							for(Person teenageMother: partnerBenefitUnit.getChildren()) {		//If mother of child is actually one of the partner's children themselves (in the case of a teenage mother living with parents, we also need to move this child)
-								if(child.getMotherId().equals(teenageMother.getKey().getId())) {
+								if(child.getId_mother().equals(teenageMother.getKey().getId())) {
 									childrenToRemoveFromPartnerHousehold.add(child);
 								}
 							}
@@ -1546,12 +1601,13 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		}
 		
 		//Reset benefitUnit and set parents Ids to zero as no longer live with parents
-		motherId = null;
-		fatherId = null;
+		id_mother = null;
+		id_father = null;
+		newBU.setRegion(benefitUnit.getRegion());
 		setBenefitUnit(newBU);				//Need to do this after removing from previous house to ensure proper removal.
 		if(partner != null) {
-			partner.motherId = null;
-			partner.fatherId = null;
+			partner.id_mother = null;
+			partner.id_father = null;
 			partner.setBenefitUnit(newBU);		//Need to do this after removing from previous house to ensure proper removal.
 		}
 		else {
@@ -1562,14 +1618,13 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		}
 		
 		newBU.initializeFields();
-		newBU.setRegion(benefitUnit.getRegion());
 		return newBU;
 	}
 	
 	 	@Override
 	    public int compareTo(Person o) {
 	    	Person p = (Person) o;
-	    	return (int) (this.getBenefitUnitId() - p.getBenefitUnitId());
+	    	return (int) (this.getId_benefitUnit() - p.getId_benefitUnit());
 	    }
 
 	//-----------------------------------------------------------------------------------
@@ -1715,7 +1770,9 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		Sfr, 										//Scenario : fertility rate This retrieves the fertility rate by region and year to use in fertility regression
 		Union,
 		Union_kids,
-		Year,
+		Year,										//Year as in the simulation, e.g. 2009
+		Year_transformed,							//Year - 2000
+		Year_transformed_monetary,					//Year-2000 that stops in 2017, for use with monetary processes
 		Ydses_c5_Q2_L1, 							//HH Income Lag(1) 2nd Quantile 
 		Ydses_c5_Q3_L1,								//HH Income Lag(1) 3rd Quantile
 		Ydses_c5_Q4_L1,								//HH Income Lag(1) 4th Quantile
@@ -1769,6 +1826,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		UKN,
 		UKmissing,
 	}
+
 	
 	public double getDoubleValue(Enum<?> variableID) {
 		
@@ -2157,11 +2215,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 			return household_status.equals(Household_status.Parents)? 1. : 0.;
         case ResStanDev:        //Draw from standard normal distribution will be multiplied by the value in the .xls file, which represents the standard deviation
             //If model.addRegressionStochasticComponent set to true, return a draw from standard normal distribution, if false return 0.
-            if(model.addRegressionStochasticComponent) {
-                return SimulationEngine.getRnd().nextGaussian(); 
-            } else {
-                return 0.;
-            }
+            return getRandomGaussianIfStochasticComponentOn();
 		case Single:
 			return household_status.equals(Household_status.Single)? 1. : 0.;
 		case Single_kids:		//TODO: Is this sufficient, or do we need to take children aged over 12 into account as well?
@@ -2187,8 +2241,17 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 				return (double) model.getTimeTrendStopsIn();
 			}
 			else {
-				return (double)model.getYear();
+				return (double) model.getYear();
 			}
+		case Year_transformed:
+			if (model.isFixTimeTrend() && model.getYear() >= model.getTimeTrendStopsIn()) {
+				return (double) model.getTimeTrendStopsIn() - 2000;
+			}
+			else {
+				return (double) model.getYear() - 2000;
+			}
+		case Year_transformed_monetary:
+			return (double) model.getTimeTrendStopsInMonetaryProcesses() - 2000; //Note: this returns base price year - 2000 (e.g. 17 for 2017 as base price year) and monetary variables are then uprated from 2017 level to the simulated year
 		case Ydses_c5_Q2_L1:
 			if(getBenefitUnit().getYdses_c5_lag1() != null && getBenefitUnit().getYdses_c5_lag1().equals(Ydses_c5.Q2)) {
 				return 1;
@@ -2368,7 +2431,6 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		case UKmissing:
 			return 0.;		//For our purpose, all our simulated people have a region, so this enum value is always going to be 0 (false).
 //			return (getRegion().equals(Region.UKmissing)) ? 1. : 0.;		//For people whose region info is missing.  The UK survey did not record the region in the first two waves (2006 and 2007, each for 4 years). For all those individuals we have gender, education etc but not region. If we exclude them we lose a large part of the UK sample, so this is the trick to keep them in the estimates.
-						
 		default:
 			throw new IllegalArgumentException("Unsupported regressor " + variableID.name() + " in Person#getDoubleValue");
 		}
@@ -2730,7 +2792,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	
 	public void setBenefitUnit(BenefitUnit benefitUnit) {
 		this.benefitUnit = benefitUnit;
-		benefitUnitId = benefitUnit.getKey().getId();
+		id_benefitUnit = benefitUnit.getKey().getId();
 	}
 
 	public Person getPartner() {
@@ -2740,24 +2802,24 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	public void setPartner(Person partner) {
 		this.partner = partner;
 		if(partner == null) {
-			partnerId = null;
+			id_partner = null;
 		}
 		else {
-			this.partnerId = partner.getKey().getId();		//Update partnerId to ensure consistency
+			this.id_partner = partner.getKey().getId();		//Update partnerId to ensure consistency
 		}
 	}
 
-	public Long getPartnerId() {
-		return partnerId;
+	public Long getId_partner() {
+		return id_partner;
 	}
 
 
-	public Long getPartnerId_lag1() {
-		return partnerId_lag1;
+	public Long getId_partner_lag1() {
+		return id_partner_lag1;
 	}
 
-	public long getBenefitUnitId() {
-		return benefitUnitId;
+	public long getId_benefitUnit() {
+		return id_benefitUnit;
 	}
 
 	public Labour getLabourSupplyWeekly() {
@@ -2781,7 +2843,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		if(Double.isFinite(gew) && gew > 0.) {
 			return gew * Parameters.WEEKS_PER_MONTH_RATIO * 12;
 		}
-		else return -9999.99;
+		else return 0.;
 //		else return null;
 	}
 	
@@ -2801,20 +2863,20 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		return desiredEarningsPotentialDiff;
 	}
 
-	public Long getMotherId() {
-		return motherId;
+	public Long getId_mother() {
+		return id_mother;
 	}
 	
-	public void setMotherId(Long motherId) {
-		this.motherId = motherId;
+	public void setId_mother(Long id_mother) {
+		this.id_mother = id_mother;
 	}
 
-	public Long getFatherId() {
-		return fatherId;
+	public Long getId_father() {
+		return id_father;
 	}
 	
-	public void setFatherId(Long fatherId) {
-		this.fatherId = fatherId;
+	public void setId_father(Long id_father) {
+		this.id_father = id_father;
 	}
 
 	public boolean isResponsible() {
@@ -2840,13 +2902,13 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 
 
 	public void orphanGiveParent() { 
-		if(dag < Parameters.AGE_TO_BECOME_RESPONSIBLE && motherId == null && fatherId == null) {		//Check if orphan
+		if(dag < Parameters.AGE_TO_BECOME_RESPONSIBLE && id_mother == null && id_father == null) {		//Check if orphan
 			Person adoptedMother = benefitUnit.getFemale();
 			if(adoptedMother != null) {
-				motherId = adoptedMother.getKey().getId();
+				id_mother = adoptedMother.getKey().getId();
 			}
 			else {
-				fatherId = benefitUnit.getMale().getKey().getId();		//Adopted father
+				id_father = benefitUnit.getMale().getKey().getId();		//Adopted father
 			}
 		}	
 		else throw new IllegalArgumentException("ERROR - orphanGiveParent method has been called on a non-orphan!");
@@ -2880,12 +2942,12 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		this.der = der;
 	}
 
-	public Long getOriginalID() {
-		return originalID;
+	public Long getId_original() {
+		return id_original;
 	}
 	
-	public Long getOriginalBUID() {
-		return originalBUID;
+	public Long getId_bu_original() {
+		return id_bu_original;
 	}
 
 	public int getAgeGroup() {
@@ -3163,14 +3225,14 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		return originalPartner;
 	}
 
-	public long getHouseholdId() {
-		return householdId;
+	public long getId_household() {
+		return benefitUnit.getId_household();
 	}
 
-	public void setHouseholdId(long householdId) {
-		this.householdId = householdId;
+	public void setId_household(long id_household) {
+		benefitUnit.setId_household(id_household);
 	}
-
+	
 	public Series.Double getYearlyEquivalisedDisposableIncomeSeries() {
 		return yearlyEquivalisedDisposableIncomeSeries;
 	}
@@ -3211,7 +3273,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	 */
 
 	public Double getsIndex() {
-		if (sIndex != null && (model.getYear() >= model.getStartYear()+model.getsIndexTimeWindow())) {
+		if (sIndex != null && sIndex > 0. && !sIndex.isInfinite() && (model.getYear() >= model.getStartYear()+model.getsIndexTimeWindow())) {
 			return sIndex;
 		}
 		else return Double.NaN;
@@ -3222,7 +3284,7 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 	}
 
 	public Double getsIndexNormalised() {
-		if (sIndexNormalised != null && (model.getYear() >= model.getStartYear()+model.getsIndexTimeWindow())) {
+		if (sIndexNormalised != null && sIndexNormalised > 0. && !sIndexNormalised.isInfinite() && (model.getYear() >= model.getStartYear()+model.getsIndexTimeWindow())) {
 			return sIndexNormalised;
 		}
 		else return Double.NaN;
@@ -3236,4 +3298,26 @@ public class Person implements EventListener, IDoubleSource, IIntSource, Weight,
 		return sIndexYearMap;
 	}
 
+	public Double getWageRegressionRandomComponent() {
+		return wageRegressionRandomComponent;
+	}
+
+	public void setWageRegressionRandomComponent(Double wageRegressionRandomComponent) {
+		this.wageRegressionRandomComponent = wageRegressionRandomComponent;
+	}
+
+	public double getRandomGaussianIfStochasticComponentOn(){
+		if(model.addRegressionStochasticComponent) {
+			return SimulationEngine.getRnd().nextGaussian();
+		} else {
+			return 0.;
+		}
+	}
+
+	/*
+	getRandomGaussianAndRMSEProductForRegression return the product of a draw from Gaussian distribution and a RMSE of a given regression model, stored in reg_RMSE Excel file
+	*/
+	public double getRandomGaussianAndRMSEProductForRegression(String regressionName) {
+		return getRandomGaussianIfStochasticComponentOn() * Parameters.getRMSEForRegression(regressionName);
+	}
 }

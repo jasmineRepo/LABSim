@@ -49,10 +49,10 @@ public class Tests implements EventListener {
         boolean passed = true;
 
         for (Person person : model.getPersons()) {
-            if (person.getBenefitUnit().getKey().getId() != person.getBenefitUnitId()) {
+            if (person.getBenefitUnit().getKey().getId() != person.getId_benefitUnit()) {
                 passed = false;
             }
-            if (person.getBenefitUnit().getHousehold().getId() != person.getHouseholdId()) {
+            if (person.getBenefitUnit().getHousehold().getId() != person.getId_household()) {
                 passed = false;
             }
         }

@@ -37,8 +37,8 @@ import labsim.model.enums.DemandAdjustment;
 import labsim.model.enums.Education;
 import labsim.model.enums.Gender;
 import labsim.model.enums.Region;
-
 import javax.persistence.criteria.CriteriaBuilder;
+import org.apache.commons.math3.util.Pair;
 
 
 /**
@@ -237,6 +237,8 @@ public class Parameters {
 	public static final int MIN_AGE_FLEXIBLE_LABOUR_SUPPLY = 16; //Used when filtering people who can be "flexible in labour supply"
 	public static final int MAX_AGE_FLEXIBLE_LABOUR_SUPPLY = 75;
 	public static final int MIN_DIFFERENCE_AGE_MOTHER_CHILD_IN_ALIGNMENT = 15; //When assigning chidlren to mothers in the population alignment, specify how much older (at the minimum) the mother must be than the child
+	public static final int MAX_EM_DONOR_RATIO = 3; // Used by BenefitUnit => convertGrossToDisposable() to decide whether gross-to-net ratio should be applied or disposable income from the donor used directly
+	public static final double PERCENTAGE_OF_MEDIAN_EM_DONOR = 0.1; // Used by BenefitUnit => convertGrossToDisposable() to decide whether gross-to-net ratio should be applied or disposable income from the donor used directly
 
 	//Initial value for the savings rate and multiplier for capital income:
 	public static double SAVINGS_RATE; //This is set in the country-specific part of this file
@@ -248,10 +250,12 @@ public class Parameters {
 	private static int max_age;		//Could define this explicitly here, however we now obtain this value from the maximum Age specified in the align_popProjections.xlsx (which corresponds to a mortality rate of 1).  This takes place in the loadParameters() method.
 	private static final int MIN_YEAR = 2011;		//Check this matches with align_popProjections.xlsx
 	private static final int MAX_YEAR = 2060;		//Check this matches with align_popProjections.xlsx
+	private static final int MIN_START_YEAR = 2011; //Minimum allowed starting point. Should correspond to the oldest initial population.
+	private static final int MAX_START_YEAR = 2017; //Maximum allowed starting point. Should correspond to the most recent initial population.
 	public static final int MIN_AGE_MATERNITY = 18;  			// Min age a person can give birth
 	public static final int MAX_AGE_MATERNITY = 44;  			// Max age a person can give birth
 
-	public static final int BASE_PRICE_YEAR = 2015; //Base price year for inflation-adjustment of EM donor population's monetary variables
+	public static final int BASE_PRICE_YEAR = 2017; //Base price year for uprating of wages
 
 	public static double PROB_NEWBORN_IS_MALE = 0.5;
 	
@@ -281,6 +285,7 @@ public class Parameters {
 	
 	//Headings in Excel file of EUROMOD policy scenarios
 	public static final String EUROMODpolicyScheduleHeadingFilename = "Filename";
+	public static final String EUROMODpolicyScheduleHeadingScenarioSystemYear = "Policy_System_Year";
 	public static final String EUROMODpolicyScheduleHeadingScenarioYearBegins = "Policy_Start_Year";
 	public static final String EUROMODpolicySchedulePlanHeadingDescription = "Description";
 	//Names of donor attributes that depend on EUROMOD policy parameters
@@ -300,14 +305,18 @@ public class Parameters {
 
 	/////////////////////////////////////////////////////////////////// INITIALISATION OF DATA STRUCTURES //////////////////////////////////
 	public static Map<Integer, String> EUROMODpolicySchedule = new TreeMap<Integer, String>();
+	public static Map<Integer, Pair<String, Integer>> EUROMODpolicyScheduleSystemYearMap = new TreeMap<>(); // This map stores year from which policy applies, and then a Pair of <name of policy, policy system year as specified in EM>. This is used when uprating values from the policy system year to a current simulated year.
 	private static MultiKeyMap<Object, Double> fertilityRateByRegionYear;
 	private static MultiKeyCoefficientMap populationProjections;
 	private static MultiKeyCoefficientMap benefitUnitVariableNames;
 
-	//CPI
-	private static MultiKeyCoefficientMap yearCPI;
-	public static Map<Integer, Double> deflatorCPIMap = new TreeMap<Integer, Double>();
+	//RMSE for linear regressions
+	private static MultiKeyCoefficientMap coefficientMapRMSE;
 
+	//Uprating factor
+	public static Map<Integer, Double> upratingFactorForMonetaryValuesMap = new TreeMap<Integer, Double>();
+	private static MultiKeyCoefficientMap yearUpratingFactor;
+	public static MultiKeyMap upratingFactorsMap = new MultiKeyMap<>();
 
 	//Education level projections
 	private static MultiKeyCoefficientMap projectionsHighEdu;			//Alignment projections for High Education
@@ -375,10 +384,14 @@ public class Parameters {
 	private static MultiKeyCoefficientMap coeffCovarianceIncomeI3a; //Capital income if in continuous education
 	private static MultiKeyCoefficientMap coeffCovarianceIncomeI3b; //Capital income if not in continuous education
 	private static MultiKeyCoefficientMap coeffCovarianceIncomeI3c; //Pension income for those aged over 50 who are not in continuous education
+	private static MultiKeyCoefficientMap coeffCovarianceIncomeI3a_selection; //Probability of receiving capital income if in continuous education
+	private static MultiKeyCoefficientMap coeffCovarianceIncomeI3b_selection; //Probability of receiving capital income if not in continuous education
 
 	//Wages
 	private static MultiKeyCoefficientMap coeffCovarianceWagesMales;
 	private static MultiKeyCoefficientMap coeffCovarianceWagesFemales;
+	private static MultiKeyCoefficientMap coeffCovarianceWagesMalesNoResStanDev;
+	private static MultiKeyCoefficientMap coeffCovarianceWagesFemalesNoResStanDev;
 
 	//Labour Market
 	private static MultiKeyCoefficientMap coeffCovarianceEmploymentSelectionMales;
@@ -475,7 +488,10 @@ public class Parameters {
 	private static LinearRegression regIncomeI3a;
 	private static LinearRegression regIncomeI3b;
 	private static LinearRegression regIncomeI3c;
-	
+	private static LogitRegression regIncomeI3a_selection;
+	private static LogitRegression regIncomeI3b_selection;
+
+
 	//New regressions from Lia
 	private static LogitRegression regSchooling;
 	private static MultiLogitRegression<Education> regEducationLevel;
@@ -486,6 +502,9 @@ public class Parameters {
 	//For Labour market
 	private static LinearRegression regWagesMales;
 	private static LinearRegression regWagesFemales;
+	private static LinearRegression regWagesMalesNoResStanDev;
+	private static LinearRegression regWagesFemalesNoResStanDev;
+
 	
 	private static LinearRegression regEmploymentSelectionMale;		//To calculate Inverse Mills Ratio for Heckman Two-Step Procedure
 	private static LinearRegression regEmploymentSelectionFemale;	//To calculate Inverse Mills Ratio for Heckman Two-Step Procedure
@@ -522,12 +541,11 @@ public class Parameters {
 	 */
 	public static void loadParameters(Country country) {
 
-		EUROMODpolicySchedule = calculateEUROMODpolicySchedule(country);		
+		EUROMODpolicySchedule = calculateEUROMODpolicySchedule(country);
 		inputFileName = "population_" + country;
-		initialInputFileName = "population_" + country + "_initial"; 
+		initialInputFileName = "population_initial_" + country;
 		setCountryRegions(country);
 		String countryString = country.toString();
-
 
 		// scenario parameters
 		if (country.equals(Country.IT)) {
@@ -585,22 +603,20 @@ public class Parameters {
 		//Fertility rates:
 		fertilityProjectionsByYear = ExcelAssistant.loadCoefficientMap("input/projections_fertility.xlsx", countryString + "_FertilityByYear", 1, 71);
 
-		//CPI
-		yearCPI = ExcelAssistant.loadCoefficientMap("input/scenario_CPI.xlsx", countryString, 1, 1);
+		//RMSE
+		coefficientMapRMSE = ExcelAssistant.loadCoefficientMap("input/reg_RMSE.xlsx", countryString, 1, 1);
 
+		//Uprating factors
+		yearUpratingFactor = ExcelAssistant.loadCoefficientMap("input/scenario_uprating_factor.xlsx", countryString, 1, 1);
+		upratingFactorsMap = populateUpratingFactorsMap();
 
-		for (Object key: yearCPI.keySet()) {
+		for (Object key: yearUpratingFactor.keySet()) {
 			int year = key.hashCode();
-//			int startYear = ((LABSimModel) SimulationEngine.getInstance().getManager(LABSimModel.class.getCanonicalName())).getStartYear();
-
-			double CPICurrentYear = ((Number) yearCPI.getValue(key)).doubleValue();
-			double CPIBaseYear = ((Number) yearCPI.getValue(BASE_PRICE_YEAR)).doubleValue();
-
-			double deflator = CPIBaseYear / CPICurrentYear;
-
-			deflatorCPIMap.put(year, deflator);
-
-
+			double valueCurrentYear = ((Number) yearUpratingFactor.getValue(key)).doubleValue();
+			double valueBaseYear = ((Number) yearUpratingFactor.getValue(BASE_PRICE_YEAR)).doubleValue();
+			double upratingFactor = valueCurrentYear / valueBaseYear;
+			// Uprating factor for wages should be a value which applied to wages from base year (2017) will produce wages correct for the simulated year, e.g. 2011.
+			upratingFactorForMonetaryValuesMap.put(year, upratingFactor);
 
 		}
 
@@ -665,12 +681,14 @@ public class Parameters {
 		int columnsIncomeI3a = -1;
 		int columnsIncomeI3b = -1;
 		int columnsIncomeI3c = -1;
+		int columnsIncomeI3a_selection = -1;
+		int columnsIncomeI3b_selection = -1;
 		int columnsLeaveHomeP1a = -1;
 		int columnsRetirementR1a = -1;
 		int columnsRetirementR1b = -1;
 		if(country.equals(Country.IT)) {
-			columnsWagesMales = 12;
-			columnsWagesFemales = 12;
+			columnsWagesMales = 11;
+			columnsWagesFemales = 11;
 			columnsEmploymentSelectionMales = 14;
 			columnsEmploymentSelectionFemales = 14;
 			columnsLabourSupplyUtilityMales = 11;
@@ -680,8 +698,8 @@ public class Parameters {
 			columnsLabourSupplyUtilityACMales = 12;
 			columnsLabourSupplyUtilityACFemales = 9;
 			columnsLabourSupplyUtilityCouples = 17;
-			columnsHealthH1a = 16; //1 for coeffs + 15 for var-cov matrix
-			columnsHealthH1b = 23;
+			columnsHealthH1a = 15; //1 for coeffs + 15 for var-cov matrix
+			columnsHealthH1b = 22;
 			columnsHealthH2b = 24;
 			columnsEducationE1a = 14;
 			columnsEducationE1b = 19;
@@ -690,18 +708,20 @@ public class Parameters {
 			columnsPartnershipU1 = 21;
 			columnsPartnershipU2 = 27;
 			columnsFertilityF1 = 22;
-			columnsIncomeI1a = 14;
-			columnsIncomeI1b = 23;
-			columnsIncomeI3a = 14;
-			columnsIncomeI3b = 23;
-			columnsIncomeI3c = 24;
+			columnsIncomeI1a = 13;
+			columnsIncomeI1b = 22;
+			columnsIncomeI3a = 13;
+			columnsIncomeI3b = 22;
+			columnsIncomeI3c = 22;
+			columnsIncomeI3a_selection = 13;
+			columnsIncomeI3b_selection = 22;
 			columnsLeaveHomeP1a = 19;
 			columnsRetirementR1a = 19;
 			columnsRetirementR1b = 24;
 		}
 		else if(country.equals(Country.UK)) {
-			columnsWagesMales = 19;
-			columnsWagesFemales = 19;
+			columnsWagesMales = 18;
+			columnsWagesFemales = 18;
 			columnsEmploymentSelectionMales = 21;
 			columnsEmploymentSelectionFemales = 21;
 			columnsLabourSupplyUtilityMales = 6;
@@ -711,9 +731,9 @@ public class Parameters {
 			columnsLabourSupplyUtilityACMales = 6;
 			columnsLabourSupplyUtilityACFemales = 6;
 			columnsLabourSupplyUtilityCouples = 12;
-			columnsHealthH1a = 23; //1 for coefficients + 22 for covariance
-			columnsHealthH1b = 30; //1 for coefficients + 29 for covariance 
-			columnsHealthH2b = 29; //1 for coefficients + 28 for covariance 
+			columnsHealthH1a = 22; //1 for coefficients + 22 for covariance
+			columnsHealthH1b = 29; //1 for coefficients + 29 for covariance
+			columnsHealthH2b = 29; //1 for coefficients + 28 for covariance
 			columnsEducationE1a = 21; 
 			columnsEducationE1b = 27; 
 			columnsEducationE2a = 1;
@@ -723,11 +743,13 @@ public class Parameters {
 			columnsPartnershipU2b = 35;
 			columnsFertilityF1a = 14;
 			columnsFertilityF1b = 29; 
-			columnsIncomeI1a = 20;
-			columnsIncomeI1b = 32;
-			columnsIncomeI3a = 14;
-			columnsIncomeI3b = 23;
-			columnsIncomeI3c = 24;
+			columnsIncomeI1a = 19;
+			columnsIncomeI1b = 31;
+			columnsIncomeI3a = 20;
+			columnsIncomeI3b = 29;
+			columnsIncomeI3c = 30;
+			columnsIncomeI3a_selection = 19;
+			columnsIncomeI3b_selection = 29;
 			columnsLeaveHomeP1a = 26;
 			columnsRetirementR1a = 26;
 			columnsRetirementR1b = 31;
@@ -744,7 +766,13 @@ public class Parameters {
 		// Wages
 		coeffCovarianceWagesMales = ExcelAssistant.loadCoefficientMap("input/reg_wages.xlsx", countryString + "_Wages_Males", 1, columnsWagesMales);
 		coeffCovarianceWagesFemales = ExcelAssistant.loadCoefficientMap("input/reg_wages.xlsx", countryString + "_Wages_Females", 1, columnsWagesFemales);
-		
+
+		coeffCovarianceWagesMalesNoResStanDev = coeffCovarianceWagesMales.clone(); // Load the same values as from Excel
+		coeffCovarianceWagesMalesNoResStanDev.putValue("ResStanDev", "COEFFICIENT", 0.);
+		coeffCovarianceWagesFemalesNoResStanDev = coeffCovarianceWagesFemales.clone(); // Load the same values as from Excel
+		coeffCovarianceWagesFemalesNoResStanDev.putValue("ResStanDev", "COEFFICIENT", 0.);
+
+
 		//Labour Supply coefficients from Zhechun's estimates on the EM input data
 		coeffLabourSupplyUtilityMales = ExcelAssistant.loadCoefficientMap("input/reg_labourSupplyUtility.xlsx", countryString + "_Single_Males", 1, columnsLabourSupplyUtilityMales);
 		coeffLabourSupplyUtilityFemales = ExcelAssistant.loadCoefficientMap("input/reg_labourSupplyUtility.xlsx", countryString + "_Single_Females", 1, columnsLabourSupplyUtilityFemales);
@@ -798,6 +826,8 @@ public class Parameters {
 		coeffCovarianceIncomeI3a = ExcelAssistant.loadCoefficientMap("input/reg_income.xlsx", countryString + "_I3a", 1, columnsIncomeI3a);
 		coeffCovarianceIncomeI3b = ExcelAssistant.loadCoefficientMap("input/reg_income.xlsx", countryString + "_I3b", 1, columnsIncomeI3b);
 		coeffCovarianceIncomeI3c = ExcelAssistant.loadCoefficientMap("input/reg_income.xlsx", countryString + "_I3c", 1, columnsIncomeI3c);
+		coeffCovarianceIncomeI3a_selection = ExcelAssistant.loadCoefficientMap("input/reg_income.xlsx", countryString + "_I3a_selection", 1, columnsIncomeI3a_selection);
+		coeffCovarianceIncomeI3b_selection = ExcelAssistant.loadCoefficientMap("input/reg_income.xlsx", countryString + "_I3b_selection", 1, columnsIncomeI3b_selection);
 
 		//Leaving parental home
 		coeffCovarianceLeaveHomeP1a = ExcelAssistant.loadCoefficientMap("input/reg_leaveParentalHome.xlsx", countryString + "_P1a", 1, columnsLeaveHomeP1a);
@@ -809,6 +839,10 @@ public class Parameters {
 		
 		//Bootstrap the coefficients
 		if(bootstrapAll) {
+			//Copied for testing
+			coeffLabourSupplyUtilityMales = RegressionUtils.bootstrap(coeffLabourSupplyUtilityMales);
+
+			//Original order below
 			coeffCovarianceHealthH1a = RegressionUtils.bootstrap(coeffCovarianceHealthH1a); //Note that this overrides the original coefficient map with bootstrapped values
 			coeffCovarianceHealthH1b = RegressionUtils.bootstrap(coeffCovarianceHealthH1b);
 			coeffCovarianceHealthH2b = RegressionUtils.bootstrap(coeffCovarianceHealthH2b);
@@ -820,10 +854,14 @@ public class Parameters {
 			coeffCovarianceIncomeI3a = RegressionUtils.bootstrap(coeffCovarianceIncomeI3a);
 			coeffCovarianceIncomeI3b = RegressionUtils.bootstrap(coeffCovarianceIncomeI3b);
 			coeffCovarianceIncomeI3c = RegressionUtils.bootstrap(coeffCovarianceIncomeI3c);
+			coeffCovarianceIncomeI3a_selection = RegressionUtils.bootstrap(coeffCovarianceIncomeI3a_selection);
+			coeffCovarianceIncomeI3b_selection = RegressionUtils.bootstrap(coeffCovarianceIncomeI3b_selection);
 			coeffCovarianceEmploymentSelectionMales = RegressionUtils.bootstrap(coeffCovarianceEmploymentSelectionMales);
 			coeffCovarianceEmploymentSelectionFemales = RegressionUtils.bootstrap(coeffCovarianceEmploymentSelectionFemales);
 			coeffCovarianceWagesMales = RegressionUtils.bootstrap(coeffCovarianceWagesMales);
 			coeffCovarianceWagesFemales = RegressionUtils.bootstrap(coeffCovarianceWagesFemales);
+			coeffCovarianceWagesMalesNoResStanDev = RegressionUtils.bootstrap(coeffCovarianceWagesMalesNoResStanDev);
+			coeffCovarianceWagesFemalesNoResStanDev = RegressionUtils.bootstrap(coeffCovarianceWagesFemalesNoResStanDev);
 			coeffLabourSupplyUtilityMales = RegressionUtils.bootstrap(coeffLabourSupplyUtilityMales);
 			coeffLabourSupplyUtilityFemales = RegressionUtils.bootstrap(coeffLabourSupplyUtilityFemales);
 			coeffLabourSupplyUtilityMalesWithDependent = RegressionUtils.bootstrap(coeffLabourSupplyUtilityMalesWithDependent);
@@ -886,7 +924,8 @@ public class Parameters {
 		regIncomeI3a = new LinearRegression(coeffCovarianceIncomeI3a);
 		regIncomeI3b = new LinearRegression(coeffCovarianceIncomeI3b);
 		regIncomeI3c = new LinearRegression(coeffCovarianceIncomeI3c);
-
+		regIncomeI3a_selection = new LogitRegression(coeffCovarianceIncomeI3a_selection);
+		regIncomeI3b_selection = new LogitRegression(coeffCovarianceIncomeI3b_selection);
 		
 		//XXX: Note: the model used for selection in Heckman procedure is a Probit, but to obtain Inverse Mills Ratio, linear prediction needs to be obtained - so linear regression used here
 		regEmploymentSelectionMale = new LinearRegression(coeffCovarianceEmploymentSelectionMales);	
@@ -896,6 +935,9 @@ public class Parameters {
 		//Wages
 		regWagesMales = new LinearRegression(coeffCovarianceWagesMales);
 		regWagesFemales = new LinearRegression(coeffCovarianceWagesFemales);
+		regWagesMalesNoResStanDev = new LinearRegression(coeffCovarianceWagesMalesNoResStanDev);
+		regWagesFemalesNoResStanDev = new LinearRegression(coeffCovarianceWagesFemalesNoResStanDev);
+
 		
 		//Labour Supply regressions from Zhechun's estimates on the EM input data
 		regLabourSupplyUtilityMales = new LinearRegression(coeffLabourSupplyUtilityMales);
@@ -1065,6 +1107,27 @@ public class Parameters {
 		}
 	}
 */
+
+	public static double calculateUpratingFactorBetweenTwoYears(int systemYear, int simulatedYear) {
+		double factorSystemYear = ((Number) yearUpratingFactor.getValue(systemYear)).doubleValue();
+		double factorSimulatedYear = ((Number) yearUpratingFactor.getValue(simulatedYear)).doubleValue();
+		return factorSimulatedYear/factorSystemYear;
+	}
+
+	public static MultiKeyMap populateUpratingFactorsMap() {
+		MultiKeyMap newUpratingFactorsMap = new MultiKeyMap<>(); //Key: simulated year, policy name Value: uprating factor
+		for (int yearSimulated = Parameters.getMin_Year(); yearSimulated <= Parameters.getMax_Year(); yearSimulated++) { //Iterate over simulated years
+			for(int policyYear : EUROMODpolicyScheduleSystemYearMap.keySet()) { //Iterate over policy start years
+				int systemYear = EUROMODpolicyScheduleSystemYearMap.get(policyYear).getSecond(); //Get system year for a given policy
+				String policyName = EUROMODpolicyScheduleSystemYearMap.get(policyYear).getFirst(); //Get policy name
+				double upratingFactor = calculateUpratingFactorBetweenTwoYears(systemYear, yearSimulated); //Calculate uprating factor from a given system year to a given simulated year
+				newUpratingFactorsMap.put(yearSimulated, policyName, upratingFactor);
+			}
+		}
+
+		return newUpratingFactorsMap;
+	}
+
 	public static NormalDistribution getStandardNormalDistribution() {
 		return standardNormalDistribution;
 	}
@@ -1075,6 +1138,10 @@ public class Parameters {
 		return multivariateNormalDistribution;
 	}
 
+	public static double getRMSEForRegression(String regressionName) {
+		double valueRMSE = ((Number) coefficientMapRMSE.getValue(regressionName)).doubleValue();
+		return valueRMSE;
+	}
 
 	private static void calculateFertilityRatesFromProjections() {
 		
@@ -1132,7 +1199,7 @@ public class Parameters {
 	
 	public static TreeMap<Integer, String> calculateEUROMODpolicySchedule(Country country) {
 		//Load current values for policy description and initiation year
-		MultiKeyCoefficientMap currentEUROMODpolicySchedule = ExcelAssistant.loadCoefficientMap("input" + File.separator + EUROMODpolicyScheduleFilename + ".xlsx", country.toString(), 1, 2);
+		MultiKeyCoefficientMap currentEUROMODpolicySchedule = ExcelAssistant.loadCoefficientMap("input" + File.separator + EUROMODpolicyScheduleFilename + ".xlsx", country.toString(), 1, 3);
 		TreeMap<Integer, String> newEUROMODpolicySchedule = new TreeMap<>();
 
 		for(Object o: currentEUROMODpolicySchedule.keySet()) {
@@ -1140,14 +1207,23 @@ public class Parameters {
 			if(k.getKey(0) != null) {
 				String name = k.getKey(0).toString();
 				if(name != null) {
-					String policyStartYearString = currentEUROMODpolicySchedule.getValue(name, EUROMODpolicyScheduleHeadingScenarioYearBegins).toString(); 
+					String policyStartYearString = currentEUROMODpolicySchedule.getValue(name, EUROMODpolicyScheduleHeadingScenarioYearBegins).toString();
+					String policySystemYearString = currentEUROMODpolicySchedule.getValue(name, EUROMODpolicyScheduleHeadingScenarioSystemYear).toString();
 			    	if(policyStartYearString != null && !policyStartYearString.isEmpty()) {
 			    		Integer policyStartYear = Integer.parseInt(policyStartYearString);
+						Integer policySystemYear = Integer.parseInt(policySystemYearString);
 			    		if(newEUROMODpolicySchedule.containsKey(policyStartYear)) {
 			    			throw new IllegalArgumentException("ERROR - there is more than one EUROMOD policy scenario with the same policy start year of " + policyStartYear + "!");
 			    		}
 			    		if(policyStartYear >= Parameters.getMin_Year() && policyStartYear <= Parameters.getMax_Year()) {
 			    			newEUROMODpolicySchedule.put(policyStartYear, name.split(".txt")[0]);
+
+							if (policySystemYearString == null) {
+								throw new IllegalArgumentException("ERROR - there is at least one EUROMOD policy scenario (" + name + ") with policy start year but no policy system year!");
+							} else {
+								Pair<String, Integer> policyNameSystemYearPair = new Pair<>(name.split(".txt")[0], policySystemYear);
+								EUROMODpolicyScheduleSystemYearMap.put(policyStartYear, policyNameSystemYearPair);
+							}
 			    		}
 			    	}
 				}
@@ -1293,11 +1369,14 @@ public class Parameters {
 
 	public static LinearRegression getRegIncomeI3c() { return regIncomeI3c; }
 
+	public static LogitRegression getRegIncomeI3a_selection() { return regIncomeI3a_selection; }
+
+	public static LogitRegression getRegIncomeI3b_selection() { return regIncomeI3b_selection; }
+
 	public static int getMaxAge() {
 		return max_age;
 	}
-	
-	
+
 	public static Set<Region> getCountryRegions() {
 		return countryRegions;
 	}
@@ -1312,6 +1391,14 @@ public class Parameters {
 
 	public static LinearRegression getRegWagesFemales() {
 		return regWagesFemales;
+	}
+
+	public static LinearRegression getRegWagesMalesNoResStanDev() {
+		return regWagesMalesNoResStanDev;
+	}
+
+	public static LinearRegression getRegWagesFemalesNoResStanDev() {
+		return regWagesFemalesNoResStanDev;
 	}
 
 	public static String getInputFileName() {
@@ -1381,6 +1468,14 @@ public class Parameters {
 
 	public static int getMax_Year() {
 		return MAX_YEAR;
+	}
+
+	public static int getMaxStartYear() {
+		return MAX_START_YEAR;
+	}
+
+	public static int getMinStartYear() {
+		return MIN_START_YEAR;
 	}
 
 	public static String getEUROMODpolicyForThisYear(int year) {

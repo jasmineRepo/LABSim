@@ -56,16 +56,16 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	private final PanelEntityKey key;
 	
 	@Column(name="idfemale")	//XXX: This column is not present in the household table of the input database
-	private Long femaleId;
+	private Long id_female;
 	
 	@Transient
 	private Person female;		//The female head of the household and the mother of the children
 	
 	@Column(name="idmale")		//XXX: This column is not present in the household table of the input database
-	private Long maleId;
+	private Long id_male;
 
 	@Column(name="idhh")
-	private Long householdId;
+	private Long id_household;
 
 	@Transient
 	private Household household;
@@ -80,10 +80,13 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	Occupancy occupancy;
 	
 	@Column(name="disposable_household_income_monthly")
-	private Double disposableIncomeMonthly;
+	private Double disposableIncomeMonthly = 0.;
+
+	@Transient
+	private boolean disposableIncomeMonthlyImputed;
 	
 	@Column(name="equivalised_household_disposable_income_yearly")
-	private Double equivalisedDisposableIncomeYearly;
+	private Double equivalisedDisposableIncomeYearly = 0.;
 
 	@Column(name="at_risk_of_poverty")
 	private Integer atRiskOfPoverty;		//1 if at risk of poverty, defined by an equivalisedDisposableIncomeYearly < 60% of median household's
@@ -319,7 +322,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		this.n_children_allAges_lag1 = 0;
 		this.n_children_02 = 0;
 		this.n_children_02_lag1 = 0;
-		this.equivalisedDisposableIncomeYearly = -9999.99;
+		this.equivalisedDisposableIncomeYearly = 0.;
 		this.createdByConstructor = "LongID";
 
 
@@ -339,17 +342,19 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 
 		//Set region of household
 		region = person.getRegion();
-//		children = new LinkedHashSet<Person>();
-//		otherMembers = new LinkedHashSet<Person>();
-//		size = 0;
+		children = new LinkedHashSet<Person>();
+		otherMembers = new LinkedHashSet<Person>();
+		size = 0;
 		addResponsiblePerson(person);
 		if(person.getDgn().equals(Gender.Female)) {
 			female = person;
 		} else if(person.getDgn().equals(Gender.Male)) {
 			male = person;
 		}
-
-		householdId = person.getHouseholdId(); //Retain householdId when setting up a new benefit unit
+		household = person.getBenefitUnit().getHousehold(); // New BU should retain link to household.
+		if (household != null) {
+			id_household = person.getId_household(); //Retain householdId when setting up a new benefit unit. Add benefit units to household method should override this.
+		}
 		this.createdByConstructor = "Singles";
 
 	}
@@ -387,14 +392,14 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 			this.disposableIncomeMonthly = originalBenefitUnit.disposableIncomeMonthly;
 		}
 		else {
-			this.disposableIncomeMonthly = -9999.99;
+			this.disposableIncomeMonthly = 0.;
 		}
 
 		if (originalBenefitUnit.equivalisedDisposableIncomeYearly != null) {
 			this.equivalisedDisposableIncomeYearly = originalBenefitUnit.equivalisedDisposableIncomeYearly;
 		}
 		else {
-			this.equivalisedDisposableIncomeYearly = -9999.99;
+			this.equivalisedDisposableIncomeYearly = 0.;
 		}
 		this.atRiskOfPoverty = originalBenefitUnit.atRiskOfPoverty;
 //		this.children = household.children;
@@ -470,6 +475,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	
 	public enum Processes {
 		Update,		//This updates the household fields, such as number of children of a certain age
+		UpdateDisposableIncomeNotAtRiskOfWork,
 	}
 		
 	@Override
@@ -480,6 +486,9 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 			updateOccupancy();
 			updateComposition(); //Update household composition
 			updateIncomeVariables();
+			break;
+		case UpdateDisposableIncomeNotAtRiskOfWork:
+			updateDisposableIncomeIfNotAtRiskOfWork();
 			break;
 		}
 	}
@@ -756,59 +765,55 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		updateOccupancy();
 		
 		MultiKeyMap<Labour, DonorHousehold> mostSimilarEUROMODhouseholdsByLabour = MultiKeyMap.multiKeyMap(new LinkedMap<>());
-		
-		if(occupancy.equals(Occupancy.Couple)) {		//Need to use both partners individual characteristics to determine similar benefitUnits
-			
-			//Sometimes one of the occupants of the couple will be retired (or even under the age to work, which is currently the age to leave home).  For this case, the person (not at risk of work)'s labour supply will always be zero, while the other person at risk of work has a choice over the single person Labour Supply set.
-			Labour[] labourMaleValues;
-			if(male.atRiskOfWork()) {
+
+			if (occupancy.equals(Occupancy.Couple)) {        //Need to use both partners individual characteristics to determine similar benefitUnits
+
+				//Sometimes one of the occupants of the couple will be retired (or even under the age to work, which is currently the age to leave home).  For this case, the person (not at risk of work)'s labour supply will always be zero, while the other person at risk of work has a choice over the single person Labour Supply set.
+				Labour[] labourMaleValues;
+				if (male.atRiskOfWork()) {
 //				labourMaleValues = Labour.values();
 //				labourMaleValues = new Labour[] {Labour.ZERO, Labour.TWENTY}; //Can populate arrays used with values manually and use the same enum for males and females
-				labourMaleValues = Labour.returnChoicesAllowedForGender(Gender.Male);
-			}
-			else {
-				labourMaleValues = new Labour[]{Labour.ZERO};
-			}
-			
-			Labour[] labourFemaleValues;
-			if(female.atRiskOfWork()) {
+					labourMaleValues = Labour.returnChoicesAllowedForGender(Gender.Male);
+				} else {
+					labourMaleValues = new Labour[]{Labour.ZERO};
+				}
+
+				Labour[] labourFemaleValues;
+				if (female.atRiskOfWork()) {
 //				labourFemaleValues = Labour.values();
-				labourFemaleValues = Labour.returnChoicesAllowedForGender(Gender.Female);
-			}
-			else {
-				labourFemaleValues = new Labour[]{Labour.ZERO};
-			}
-			
-			for(Labour labourMale: labourMaleValues) {        		 
-            	for(Labour labourFemale: labourFemaleValues) {
-            		MultiKey<Labour> labourKey = new MultiKey<>(labourMale, labourFemale);
-            		DonorHousehold mostSimilarHouse = findMostSimilarEUROMODhouseholdForThisLabour(labourKey);
-            		if(mostSimilarHouse != null) {			//Ignore labour cases where no donor household can be found (this is reasonable, considering the fact that there may, for example, be no donor benefitUnits of highly educated benefitUnits working 0 hours per week (at a particular age, for a particular work sector, in a particular region, with a particular number of children etc...)
-            			mostSimilarEUROMODhouseholdsByLabour.put(labourKey, mostSimilarHouse);
-            		}
-            	}
-			}
-		}
-		else {		//For single benefitUnits, no need to check for at risk of work (i.e. retired, sick or student activity status), as this has already been done when passing this household to the labour supply module (see first loop over benefitUnits in LabourMarket#update()).
-			if (occupancy.equals(Occupancy.Single_Male)) {
-				for (Labour labour : Labour.returnChoicesAllowedForGender(Gender.Male)) {
-					MultiKey<Labour> labourKey = new MultiKey<>(labour, null);
-					DonorHousehold mostSimilarHouse = findMostSimilarEUROMODhouseholdForThisLabour(labourKey);
-					if(mostSimilarHouse != null) {
-						mostSimilarEUROMODhouseholdsByLabour.put(labour, null, mostSimilarHouse);
+					labourFemaleValues = Labour.returnChoicesAllowedForGender(Gender.Female);
+				} else {
+					labourFemaleValues = new Labour[]{Labour.ZERO};
+				}
+
+				for (Labour labourMale : labourMaleValues) {
+					for (Labour labourFemale : labourFemaleValues) {
+						MultiKey<Labour> labourKey = new MultiKey<>(labourMale, labourFemale);
+						DonorHousehold mostSimilarHouse = findMostSimilarEUROMODhouseholdForThisLabour(labourKey);
+						if (mostSimilarHouse != null) {            //Ignore labour cases where no donor household can be found (this is reasonable, considering the fact that there may, for example, be no donor benefitUnits of highly educated benefitUnits working 0 hours per week (at a particular age, for a particular work sector, in a particular region, with a particular number of children etc...)
+							mostSimilarEUROMODhouseholdsByLabour.put(labourKey, mostSimilarHouse);
+						}
 					}
+				}
+			} else {        //For single benefitUnits, no need to check for at risk of work (i.e. retired, sick or student activity status), as this has already been done when passing this household to the labour supply module (see first loop over benefitUnits in LabourMarket#update()).
+				if (occupancy.equals(Occupancy.Single_Male)) {
+					for (Labour labour : Labour.returnChoicesAllowedForGender(Gender.Male)) {
+						MultiKey<Labour> labourKey = new MultiKey<>(labour, null);
+						DonorHousehold mostSimilarHouse = findMostSimilarEUROMODhouseholdForThisLabour(labourKey);
+						if (mostSimilarHouse != null) {
+							mostSimilarEUROMODhouseholdsByLabour.put(labour, null, mostSimilarHouse);
+						}
 					}
-			}
-			else { //Must be single female
-				for (Labour labour : Labour.returnChoicesAllowedForGender(Gender.Female)) {
-					MultiKey<Labour> labourKey = new MultiKey<>(labour, null);
-					DonorHousehold mostSimilarHouse = findMostSimilarEUROMODhouseholdForThisLabour(labourKey);
-					if(mostSimilarHouse != null) {
-						mostSimilarEUROMODhouseholdsByLabour.put(null, labour, mostSimilarHouse);
+				} else { //Must be single female
+					for (Labour labour : Labour.returnChoicesAllowedForGender(Gender.Female)) {
+						MultiKey<Labour> labourKey = new MultiKey<>(labour, null);
+						DonorHousehold mostSimilarHouse = findMostSimilarEUROMODhouseholdForThisLabour(labourKey);
+						if (mostSimilarHouse != null) {
+							mostSimilarEUROMODhouseholdsByLabour.put(null, labour, mostSimilarHouse);
+						}
 					}
 				}
 			}
-		}
 				
 		if(mostSimilarEUROMODhouseholdsByLabour.isEmpty()) {
 			String e = "Error - there are no donor benefitUnits for any labour permutations for household " + key.getId() + " in region " + region.getName() + " (" + region + ") with " + children.size() + " children and occupants: ";
@@ -1295,6 +1300,68 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		}
 	}
 
+
+	/*
+		convertGrossToDisposable method takes a donor household and gross income to convert and:
+		i) determines the ratio of gross to disposable income to use
+		ii) determines whether the ratio should be applied, or donor's disposable income returned
+		iii) return Double value of disposable income
+	 */
+	protected Double convertGrossToDisposable(DonorHousehold donorHousehold, Double grossIncomeToConvert) {
+		double disposableIncomeToReturn;
+		double donorGrossIncome = donorHousehold.getGrossIncome(); // Gross income of the donor
+		double ratio = donorHousehold.getDisposableToGrossIncomeRatio(); // Get ratio of disposable to gross income from the donor
+		// If donor's gross income is too small, or the ratio too large => don't use the conversion but use disposable income directly
+		// getMedianIncomeForCurrentYear() retrieves the median of donor income given the policy name applicable to the current year
+		if (donorGrossIncome > Parameters.PERCENTAGE_OF_MEDIAN_EM_DONOR*model.getMedianIncomeForCurrentYear() && ratio <= Parameters.MAX_EM_DONOR_RATIO) { // If donor's gross income is bigger than 10% of the median gross income in the donor population (for a given policy) and the ratio is smaller than Parameters.MAX_EM_DONOR_RATIO, use ratio to convert simulated gross income into net. Otherwise, impute disposable income directly from the donor.
+			disposableIncomeToReturn = ratio * grossIncomeToConvert;
+		} else {
+			disposableIncomeToReturn = donorHousehold.getDisposableIncome();
+		}
+		return disposableIncomeToReturn;
+	}
+
+	/*
+	updateDisposableIncomeIfNotAtRiskOfWork process is used to calculate disposable income for benefit units in which no individual is at risk of work, and which therefore do not enter the updateLabourSupply process.
+
+	There are two cases to consider: i) single benefit units, ii) couples where no individual is at risk of work
+
+	 */
+	protected void updateDisposableIncomeIfNotAtRiskOfWork() {
+		if (!getAtRiskOfWork() && occupancy != null) {
+			//Get donor benefitUnits from EUROMOD - the most similar benefitUnits for our criteria, matched by:
+			// BenefitUnit characteristics: occupancy, region, number of children;
+			// Individual characteristics (potentially for each partner): gender, education, number of hours worked (binned in classes), work sector, health, age;
+			// and with minimum difference between gross (market) income.
+			MultiKeyMap<Labour, DonorHousehold> donorHouseholdsByLabourPairs = findDonorHouseholdsByLabour();
+
+			//Then get the [zero, null] or [null, zero] or [zero, zero] donors depending on the household composition - but no need to iterate through all of them, as BUs not at risk of work don't choose hours to max. utility.
+			// TODO: Should we define and use disposable to gross income ratio, and not to earnings? Might be more appropriate for those who do not work? => No, because our measure of earnings already contains non-benefit non-employment income
+			// TODO: I'm not sure how well assigning disposable income works in this case - given that we know the capital and pension income and might get a very different value from the match. Also, sometimes the ratios are very high, e.g. 25 resulting in very high disposable monthly income. => I think it will be important to either look for a different donor in such case or modify the matching to include income band and labour market status
+			if (occupancy.equals(Occupancy.Couple)) {
+				MultiKey<? extends Labour> labourKey = new MultiKey<>(Labour.ZERO, Labour.ZERO);
+				DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
+				double simulatedIncomeToConvert = Math.sinh(male.getYptciihs_dv()) + Math.sinh(female.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
+			} else if (occupancy.equals(Occupancy.Single_Male)) {
+				MultiKey<? extends Labour> labourKey = new MultiKey<>(Labour.ZERO, null);
+				DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
+				double simulatedIncomeToConvert = Math.sinh(male.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
+			} else if (occupancy.equals(Occupancy.Single_Female)) {
+				MultiKey<? extends Labour> labourKey = new MultiKey<>(null, Labour.ZERO);
+				DonorHousehold donorHousehold = donorHouseholdsByLabourPairs.get(labourKey);
+				double simulatedIncomeToConvert = Math.sinh(female.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHousehold, simulatedIncomeToConvert);
+			} else {
+				throw new IllegalStateException("Benefit Unit with the following ID has no recognised occupancy: " + getKey().getId());
+			}
+
+			// TODO: Verify that calculateBUIncome() is ok for benefit units not at risk of work
+			calculateBUIncome();
+		}
+	}
+
 	
 	protected void updateLabourSupply() {
 
@@ -1322,16 +1389,9 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 				female.setLabourSupplyWeekly(map.getKey(1));				
 				log.debug("household " + key.getId() + ", male labour supply " + male.getLabourSupplyWeekly() + ", female labour supply " + female.getLabourSupplyWeekly() + ", male potential earnings " + male.getPotentialEarnings() + ", female potential earnings " + female.getPotentialEarnings());
 
-
-				//If donor household's earnings are equal to 0, the ratio cannot be calculated. In that situation, use donor household's disposable income.
 				//Earnings are composed of the labour income and non-benefit non-employment income Yptciihs_dv() (this is monthly, so no need to multiply by WEEKS_PER_MONTH_RATIO)
-				if(donorHouse.getGrossEarnings() != 0.) {
-					disposableIncomeMonthly = donorHouse.getDisposableIncomeToGrossEarningsRatio() * (Parameters.WEEKS_PER_MONTH_RATIO * (male.getPotentialEarnings()*male.getLabourSupplyWeekly().getHours() + female.getPotentialEarnings()*female.getLabourSupplyWeekly().getHours()) + Math.sinh(male.getYptciihs_dv()) + Math.sinh(female.getYptciihs_dv()));
-				}
-				else {
-					disposableIncomeMonthly = donorHouse.getDisposableIncome();
-				}
-
+				double simulatedIncomeToConvert = Parameters.WEEKS_PER_MONTH_RATIO * (male.getPotentialEarnings()*male.getLabourSupplyWeekly().getHours() + female.getPotentialEarnings()*female.getLabourSupplyWeekly().getHours()) + Math.sinh(male.getYptciihs_dv()) + Math.sinh(female.getYptciihs_dv());
+				disposableIncomeMonthly = convertGrossToDisposable(donorHouse, simulatedIncomeToConvert);
 
 				//TODO: Should the "Single Type 2" be considered here? I.e. those where partner is a student, disabled, or outside of the specified age range? 
 				//They are not at risk of work (TODO: make sure being disabled makes person not at risk), so will always have 0 labour supply
@@ -1356,7 +1416,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 				}
 				else throw new IllegalArgumentException("None of the partners are at risk of work! HHID " + getKey().getId()); 
 				
-				disposableIncomeMonthlyByLabourPairs.put(map, disposableIncomeMonthly);							
+				disposableIncomeMonthlyByLabourPairs.put(map, disposableIncomeMonthly);
 				labourSupplyUtilityExponentialRegressionScoresByLabourPairs.put(map, exponentialRegressionScore); //XXX: Adult children could contribute their income to the hh, but then utility would have to be joint for a household with adult children, and they couldn't be treated separately as they are at the moment?
 				
 //				System.out.println("For donor household disposable income is " + donorHouse.getDisposableIncomeToGrossEarningsRatio());
@@ -1369,14 +1429,8 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 					DonorHousehold donorHouse = donorHouseholdsByLabourPairs.get(map);
 					
 					male.setLabourSupplyWeekly(map.getKey(0));
-//					log.debug("household " + key.getId() + ", male labour supply " + male.getLabourSupplyWeekly() + ", male potential earnings " + male.getPotentialEarnings());
-
-					if(donorHouse.getGrossEarnings() != 0.) {
-						disposableIncomeMonthly = donorHouse.getDisposableIncomeToGrossEarningsRatio() * (Parameters.WEEKS_PER_MONTH_RATIO * (male.getPotentialEarnings()*male.getLabourSupplyWeekly().getHours()) + Math.sinh(male.getYptciihs_dv()));
-					}
-					else {
-						disposableIncomeMonthly = donorHouse.getDisposableIncome();
-					}
+					double simulatedIncomeToConvert = Parameters.WEEKS_PER_MONTH_RATIO * (male.getPotentialEarnings()*male.getLabourSupplyWeekly().getHours()) + Math.sinh(male.getYptciihs_dv());
+					disposableIncomeMonthly = convertGrossToDisposable(donorHouse, simulatedIncomeToConvert);
 
 //					log.debug("BenefitUnit disposableIncomeMonthly " + disposableIncomeMonthly);
 //					double exponentialRegressionScore = Math.exp(Parameters.getRegLabourSupplyUtilityMales().getScore(this, BenefitUnit.Regressors.class));
@@ -1387,7 +1441,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 						exponentialRegressionScore = Math.exp(Parameters.getRegLabourSupplyUtilityMales().getScore(this, BenefitUnit.Regressors.class));
 					}
 					
-					disposableIncomeMonthlyByLabourPairs.put(map, disposableIncomeMonthly);							
+					disposableIncomeMonthlyByLabourPairs.put(map, disposableIncomeMonthly);
 					labourSupplyUtilityExponentialRegressionScoresByLabourPairs.put(map, exponentialRegressionScore);
 
 				}
@@ -1397,15 +1451,8 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 					DonorHousehold donorHouse = donorHouseholdsByLabourPairs.get(map);
 					
 					female.setLabourSupplyWeekly(map.getKey(1));
-//					log.debug(map + ", " + donorHouse);
-//					log.debug("household " + key.getId() + ", female labour supply " + female.getLabourSupplyWeekly() + ", female potential earnings " + female.getPotentialEarnings());
-
-					if(donorHouse.getGrossEarnings() != 0.) {
-						disposableIncomeMonthly = donorHouse.getDisposableIncomeToGrossEarningsRatio() * (Parameters.WEEKS_PER_MONTH_RATIO * (female.getPotentialEarnings()*female.getLabourSupplyWeekly().getHours()) + Math.sinh(female.getYptciihs_dv()));
-					}
-					else {
-						disposableIncomeMonthly = donorHouse.getDisposableIncome();
-					}
+					double simulatedIncomeToConvert = Parameters.WEEKS_PER_MONTH_RATIO * (female.getPotentialEarnings()*female.getLabourSupplyWeekly().getHours()) + Math.sinh(female.getYptciihs_dv());
+					disposableIncomeMonthly = convertGrossToDisposable(donorHouse, simulatedIncomeToConvert);
 
 //					double exponentialRegressionScore = Math.exp(Parameters.getRegLabourSupplyUtilityFemales().getScore(this, BenefitUnit.Regressors.class));
 					double exponentialRegressionScore;
@@ -1415,7 +1462,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 						exponentialRegressionScore = Math.exp(Parameters.getRegLabourSupplyUtilityFemales().getScore(this, BenefitUnit.Regressors.class));
 					}
 					
-					disposableIncomeMonthlyByLabourPairs.put(map, disposableIncomeMonthly);							
+					disposableIncomeMonthlyByLabourPairs.put(map, disposableIncomeMonthly);
 					labourSupplyUtilityExponentialRegressionScoresByLabourPairs.put(map, exponentialRegressionScore);
 				}
 			}			
@@ -1707,7 +1754,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		}
 		
 		//TODO: Assume people in other members cannot have mother or father ids - we need to ensure that when persons 'leaveHome' when they reach a certain age, their mother and father ids are set to null 
-		if(person.getMotherId() != null || person.getFatherId() != null) {
+		if(person.getId_mother() != null || person.getId_father() != null) {
 			throw new IllegalArgumentException("Error - person being added to otherMembers has father or mother id not null.  Consider why the person is being added to a household as 'otherMember' despite having non-null mother or father.  Should the person either have mother or father ids set to null already?");
 		}
 		size = size + 1;
@@ -1921,7 +1968,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		case IncomeDiv100_NChildren017: 				//Income divided by 100 interacted with the number of children aged 0-17
 			return disposableIncomeMonthly * n_children_017 * 1.e-2;
 		case IncomeDiv100_DChildren2Under:			//Income divided by 100 interacted with dummy for presence of children aged 0-2 in the household
-			return disposableIncomeMonthly * d_children_2under.ordinal() * 1.e-2; 
+			return disposableIncomeMonthly * d_children_2under.ordinal() * 1.e-2;
 		case MaleLeisure:							//24*7 - labour supply weekly for male
 			return Parameters.HOURS_IN_WEEK - male.getLabourSupplyWeekly().getHours();
 		case MaleLeisureSq:
@@ -2475,10 +2522,10 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	}
 
 	public void updateOccupancy() {
+
 		if(female == null) {
 			if (male == null) {
-				//TODO: BenefitUnit without responsible adults - how to handle?
-//				System.out.println("Empty hh!");
+				model.removeBenefitUnit(this);
 			} else if (male.getPartner() == null) {
 				occupancy = Occupancy.Single_Male;
 			} else if (male.getBenefitUnit().getKey().getId() == male.getPartner().getBenefitUnit().getKey().getId()) { //TODO: If female is null but male in the household has a partner, and they have the same household id, the female should be set to that partner? This can be updated here?
@@ -2493,7 +2540,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 
 		else if(male == null) {
 			if (female == null) {
-//				System.out.println("Empty hh!");
+				model.removeBenefitUnit(this);
 			} else if (female.getPartner() == null) {
 				occupancy = Occupancy.Single_Female;
 			} else if (female.getBenefitUnit().getKey().getId() == female.getPartner().getBenefitUnit().getKey().getId()) {
@@ -2569,7 +2616,7 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		if(disposableIncomeMonthly != null && Double.isFinite(disposableIncomeMonthly)) {
 			equivalisedDisposableIncomeYearly = (disposableIncomeMonthly / equivalisedWeight) * 12;
 		}
-		else equivalisedDisposableIncomeYearly = -9999.99;
+		else equivalisedDisposableIncomeYearly = 0.;
 		return equivalisedDisposableIncomeYearly;
 	}
 
@@ -2626,13 +2673,13 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 			if(this.female != null) {
 				throw new IllegalArgumentException("BenefitUnit " + this.getKey().getId() + " already has a female.  Remove existing female before adding another one!");
 			}
-			this.femaleId = female.getKey().getId();	
+			this.id_female = female.getKey().getId();
 			if(!female.getDgn().equals(Gender.Female)) {
 				throw new IllegalArgumentException("Person " + female.getKey().getId() + " does not have gender = Female, so cannot be the responsible female of the househoold!");
 			}
 		}
 		else {		//female must be null then
-			femaleId = null;
+			id_female = null;
 		}
 		this.female = female;
 	}
@@ -2642,13 +2689,13 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 			if(this.male != null) {
 				throw new IllegalArgumentException("BenefitUnit " + this.getKey().getId() + " already has a male.  Remove existing male before adding another one!");
 			}
-			this.maleId = male.getKey().getId();
+			this.id_male = male.getKey().getId();
 			if(!male.getDgn().equals(Gender.Male)) {
 				throw new IllegalArgumentException("Person " + male.getKey().getId() + " does not have gender = Male, so cannot be the responsible male of the household!");
 			}
 		}
 		else {		//male must be null then
-			maleId = null;
+			id_male = null;
 		}
 		this.male = male;
 	}
@@ -2660,9 +2707,9 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	public void setHousehold(Household household) {
 		this.household = household;
 		if (household == null) {
-			this.householdId = null;
+			this.id_household = null;
 		} else {
-			this.householdId = household.getId();
+			this.id_household = household.getId();
 		}
 
 	}
@@ -2699,12 +2746,12 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		return otherMembers;
 	}
 
-	public Long getFemaleId() {
-		return femaleId;
+	public Long getId_female() {
+		return id_female;
 	}
 
-	public Long getMaleId() {
-		return maleId;
+	public Long getId_male() {
+		return id_male;
 	}
 
 	public Indicator getD_children_3under() {
@@ -2847,7 +2894,10 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 	}
 
 	public Integer getAtRiskOfPoverty() {
-		return atRiskOfPoverty;
+		if (atRiskOfPoverty != null) {
+			return atRiskOfPoverty;
+		}
+		else return 0;
 	}
 
 	public void setAtRiskOfPoverty(Integer atRiskOfPoverty) {
@@ -2919,8 +2969,8 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 
 	public void setD_children_2under(Indicator d_children_2under) { this.d_children_2under = d_children_2under; }
 
-	public long getHouseholdId() {
-		return householdId;
+	public long getId_household() {
+		return id_household;
 	}
 
 	public void setDhhtp_c4_lag1(Dhhtp_c4 dhhtp_c4_lag1) {
@@ -2930,7 +2980,8 @@ public class BenefitUnit implements EventListener, IDoubleSource, Weight, Compar
 		this.ydses_c5_lag1 = ydses_c5_lag1;
 	}
 
-	public void setHouseholdId(long householdId) {
-		this.householdId = householdId;
+	public void setId_household(long id_household) {
+		this.id_household = id_household;
 	}
+
 }

@@ -3,9 +3,13 @@ package labsim.data;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Transient;
 
 import microsim.data.db.PanelEntityKey;
 import microsim.statistics.IDoubleSource;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 @Entity
 public class Statistics {
@@ -36,8 +40,25 @@ public class Statistics {
 	private double ydses_p80;
 
 	//Percentiles of SIndex:
-	@Column(name = "SIndex_p50")
+//	@Column(name = "SIndex_p50")
+	@Transient
 	private double sIndex_p50;
+
+	//Percentiles of normalised SIndex:
+	@Column(name = "SIndexNormalised_p20")
+	private double sIndexNormalised_p20;
+
+	@Column(name = "SIndexNormalised_p40")
+	private double sIndexNormalised_p40;
+
+	@Column(name = "SIndexNormalised_p50")
+	private double sIndexNormalised_p50;
+
+	@Column(name = "SIndexNormalised_p60")
+	private double sIndexNormalised_p60;
+
+	@Column(name = "SIndexNormalised_p80")
+	private double sIndexNormalised_p80;
 	
 ////	Risk-of-poverty threshold is set at 60% of the national median equivalised household disposable income.
 //	@Column(name = "Risk_of_poverty_threshold")
@@ -97,6 +118,46 @@ public class Statistics {
 
 	public void setsIndex_p50(double sIndex_p50) {
 		this.sIndex_p50 = sIndex_p50;
+	}
+
+	public double getsIndexNormalised_p20() {
+		return sIndexNormalised_p20;
+	}
+
+	public void setsIndexNormalised_p20(double sIndexNormalised_p20) {
+		this.sIndexNormalised_p20 = sIndexNormalised_p20;
+	}
+
+	public double getsIndexNormalised_p40() {
+		return sIndexNormalised_p40;
+	}
+
+	public void setsIndexNormalised_p40(double sIndexNormalised_p40) {
+		this.sIndexNormalised_p40 = sIndexNormalised_p40;
+	}
+
+	public double getsIndexNormalised_p50() {
+		return sIndexNormalised_p50;
+	}
+
+	public void setsIndexNormalised_p50(double sIndexNormalised_p50) {
+		this.sIndexNormalised_p50 = sIndexNormalised_p50;
+	}
+
+	public double getsIndexNormalised_p60() {
+		return sIndexNormalised_p60;
+	}
+
+	public void setsIndexNormalised_p60(double sIndexNormalised_p60) {
+		this.sIndexNormalised_p60 = sIndexNormalised_p60;
+	}
+
+	public double getsIndexNormalised_p80() {
+		return sIndexNormalised_p80;
+	}
+
+	public void setsIndexNormalised_p80(double sIndexNormalised_p80) {
+		this.sIndexNormalised_p80 = sIndexNormalised_p80;
 	}
 
 //	public double getRiskOfPovertyThreshold() {

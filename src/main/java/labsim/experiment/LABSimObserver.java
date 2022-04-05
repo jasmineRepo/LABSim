@@ -65,13 +65,13 @@ public class LABSimObserver extends AbstractSimulationObserverManager implements
 	// default simulation parameters
 	private static Logger log = Logger.getLogger(LABSimObserver.class);
 	
-	@GUIparameter(description="Toggle to turn all charts on/off")
+//	@GUIparameter(description="Toggle to turn all charts on/off")
 	private Boolean showCharts = true;
 
-	@GUIparameter(description = "Enable additional charts")
+	@GUIparameter(description = "Display more disaggregated time series")
 	private Boolean showAdditionalCharts = true;
 
-	@GUIparameter(description = "Enable validation statistics")
+	@GUIparameter(description = "Display validation statistics on the graphs")
 	private Boolean showValidationStatistics = true;
 	
 	@GUIparameter(description = "Set the time-period between chart updates")

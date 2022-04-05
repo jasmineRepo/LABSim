@@ -8,7 +8,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import labsim.model.BenefitUnit;
-import labsim.model.enums.Les_c4;
 import microsim.statistics.Series;
 import microsim.statistics.functions.*;
 // import plug-in packages
@@ -50,19 +49,19 @@ public class LABSimCollector extends AbstractSimulationCollectorManager implemen
 	private boolean exportToDatabase = false;
 	
 	@GUIparameter(description="Toggle to turn export to .csv files on/off")
-	private boolean exportToCSV = false;
+	private boolean exportToCSV = true;
 
 	@GUIparameter(description="Toggle to turn persistence of statistics on/off")
-	private boolean persistStatistics = false;
+	private boolean persistStatistics = true;
 
 	@GUIparameter(description="Toggle to turn persistence of persons on/off")
-	private boolean persistPersons = false;
+	private boolean persistPersons = true;
 	
 	@GUIparameter(description="Toggle to turn persistence of benefit units on/off")
-	private boolean persistBenefitUnits = false;
+	private boolean persistBenefitUnits = true;
 
 	@GUIparameter(description = "Toggle to turn persistence of households on/off")
-	private boolean persistHouseholds = false;
+	private boolean persistHouseholds = true;
 
 	@GUIparameter(description="First time-step to dump data to database")
 	private Long dataDumpStartTime = 0L;
@@ -272,7 +271,11 @@ public class LABSimCollector extends AbstractSimulationCollectorManager implemen
 
 		private CrossSection.Double personsSIndexCS;
 
-		private PercentileArrayFunction percentileFunctionConsumptionCS;
+		private CrossSection.Double personsSIndexNormalisedCS;
+
+		private PercentileArrayFunction percentileFunctionSIndexNormalisedCS;
+
+		private PercentileArrayFunction percentileFunctionSIndexCS;
 
 		double sIndexMedianForNormalisation;
 
@@ -371,11 +374,11 @@ public class LABSimCollector extends AbstractSimulationCollectorManager implemen
 
 			//Now calculate the median value of the sIndex
 			personsSIndexCS = new CrossSection.Double(model.getPersons(), Person.DoublesVariables.sIndex);
-			percentileFunctionConsumptionCS = new PercentileArrayFunction(personsSIndexCS);
-			percentileFunctionConsumptionCS.updateSource();
+			percentileFunctionSIndexCS = new PercentileArrayFunction(personsSIndexCS);
+			percentileFunctionSIndexCS.updateSource();
 
 			//Set value in the statistics object
-			stats.setsIndex_p50(percentileFunctionConsumptionCS.getDoubleValue(PercentileArrayFunction.Variables.P50));
+			stats.setsIndex_p50(percentileFunctionSIndexCS.getDoubleValue(PercentileArrayFunction.Variables.P50));
 
 			if (model.getYear() == model.getStartYear()+model.getsIndexTimeWindow()+1) { //+1 added to the RHS because model increments the year and model runs before the collector
 				sIndexMedianForNormalisation = stats.getsIndex_p50();
@@ -388,6 +391,17 @@ public class LABSimCollector extends AbstractSimulationCollectorManager implemen
 					person.setsIndexNormalised(normalisedSIndex);
 				}
 			}
+
+			personsSIndexNormalisedCS = new CrossSection.Double(model.getPersons(), Person.DoublesVariables.sIndexNormalised);
+			percentileFunctionSIndexNormalisedCS = new PercentileArrayFunction(personsSIndexNormalisedCS);
+			percentileFunctionSIndexNormalisedCS.updateSource();
+
+			stats.setsIndexNormalised_p20(percentileFunctionSIndexNormalisedCS.getDoubleValue(PercentileArrayFunction.Variables.P20));
+			stats.setsIndexNormalised_p40(percentileFunctionSIndexNormalisedCS.getDoubleValue(PercentileArrayFunction.Variables.P40));
+			stats.setsIndexNormalised_p50(percentileFunctionSIndexNormalisedCS.getDoubleValue(PercentileArrayFunction.Variables.P50));
+			stats.setsIndexNormalised_p60(percentileFunctionSIndexNormalisedCS.getDoubleValue(PercentileArrayFunction.Variables.P60));
+			stats.setsIndexNormalised_p80(percentileFunctionSIndexNormalisedCS.getDoubleValue(PercentileArrayFunction.Variables.P80));
+
 
 		}
 

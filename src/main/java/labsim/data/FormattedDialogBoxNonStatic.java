@@ -38,7 +38,7 @@ public class FormattedDialogBoxNonStatic {
 	 * @param modal
 	 *
 	 */
-	public FormattedDialogBoxNonStatic(String title, String text, int width, int height, JComponent component, boolean modal) {			
+	public FormattedDialogBoxNonStatic(String title, String text, int width, int height, JComponent component, boolean modal, boolean keepExistingButton) {
 		
 		// create dialog box
 		JFrame frame = new JFrame();
@@ -82,11 +82,15 @@ public class FormattedDialogBoxNonStatic {
 			}
 		});
 
+
+
 		// add content to dialog box
 		JPanel dialogPanel = new JPanel();
 		if (component != null) dialogPanel.add(component);
 		dialogPanel.add(updateButton);
-		dialogPanel.add(skipButton);
+		if (keepExistingButton) { // Only show "keep existing policy schedule" button if EM schedule builder not called as part of the rebuild of all databases
+			dialogPanel.add(skipButton);
+		}
 		dialogPanel.setBorder(BorderFactory.createEmptyBorder(20,20,70,20));
 
 		// complete construction

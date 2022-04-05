@@ -12,6 +12,7 @@ import javax.persistence.Enumerated;
 import javax.persistence.Id;
 import javax.persistence.Transient;
 
+import org.apache.commons.collections4.map.MultiKeyMap;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 
@@ -165,10 +166,16 @@ public class DonorHousehold {
 	
 	@Transient
 	private Map<String, Double> disposableIncome;
+
+//	@Transient
+//	private MultiKeyMap disposableIncomeUprated;
 	
 	@Transient
 //	private double grossEarnings; //When earnings = 0 it is not possible to calculate the income to gross earnings ratio
 	private Map<String, Double> grossEarnings;
+
+	@Transient
+	private Map<String, Double> grossIncome;
 	
 	//-------------------------------------------------------------------------------
 	//	Constructors
@@ -185,7 +192,7 @@ public class DonorHousehold {
 		disposableIncomeToGrossEarningsRatio = new LinkedHashMap<String, Double>();	
 		disposableIncome = new LinkedHashMap<String, Double>();
 		grossEarnings = new LinkedHashMap<>();
-
+		grossIncome = new LinkedHashMap<>();
 	}	
 	
 	protected void initializeAttributes() {
@@ -335,36 +342,50 @@ public class DonorHousehold {
 		 * without the adjustment. 
 		 */
 
-		//TODO: Is the deflator still needed (if so, when) now that original income and gross earnings are policy-dependent?
+		// Note: "within-policy-year" ratios are now used, for which the deflator shouldn't change anything so it is not applied (deflating both numerator and denominator produces
+		// the same ratio as calculating it without the deflation factor). However, we still need to apply it to monetary variables in levels,
+		// as they are used in the minimum-distance matching of simulated households with EM-donor households.
 
 		for (Object key : Parameters.EUROMODpolicySchedule.keySet()) {
 			String policyName = Parameters.EUROMODpolicySchedule.get(key);
 
 //			int deflateFromYear = Math.min((Integer) key, model.getYear()); //Deflate EM monetary variables from min(policy year, observed year) to base year (Parameters.BASE_PRICE_YEAR).
-			double deflatorCPI = Parameters.deflatorCPIMap.get(key);
+//			double deflatorCPI = Parameters.deflatorCPIMap.get(key);
 //			System.out.println(deflatorCPI);
 
 //		for(String policyName: Parameters.EUROMODpolicySchedule.values()) {
 			if(sumOfOccupantsMonthlyOriginalIncome.get(policyName) != 0.0) {
-				disposableToGrossIncomeRatio.put(policyName, (sumOfOccupantsMonthlyDisposableIncome.get(policyName) / sumOfOccupantsMonthlyOriginalIncome.get(policyName))*deflatorCPI);
+				disposableToGrossIncomeRatio.put(policyName, (sumOfOccupantsMonthlyDisposableIncome.get(policyName) / sumOfOccupantsMonthlyOriginalIncome.get(policyName)));
 			}
 			else {
 				disposableToGrossIncomeRatio.put(policyName, 0.0);
 			}
 			
 			if(sumOfOccupantsMonthlyGrossEarnings.get(policyName) != 0.0) {
-				disposableIncomeToGrossEarningsRatio.put(policyName, (sumOfOccupantsMonthlyDisposableIncome.get(policyName) / sumOfOccupantsMonthlyGrossEarnings.get(policyName))*deflatorCPI);
+				disposableIncomeToGrossEarningsRatio.put(policyName, (sumOfOccupantsMonthlyDisposableIncome.get(policyName) / sumOfOccupantsMonthlyGrossEarnings.get(policyName)));
 			}
 			else {
 				disposableIncomeToGrossEarningsRatio.put(policyName, 0.0);
 			}
-			
-			//If earnings = 0 it is not possible to calculate the ratio above. In that case, use disposable income directly
-			disposableIncome.put(policyName, sumOfOccupantsMonthlyDisposableIncome.get(policyName)*deflatorCPI);
-			
+
+			// Values below are deflated to the base year level (specified in Parameters class), for example 2015.
+
+			//If earnings = 0 it is not possible to calculate the ratio above. In that case, use disposable income directly. Values are uprated in the getDisposableIncome method.
+			disposableIncome.put(policyName, sumOfOccupantsMonthlyDisposableIncome.get(policyName));
+
+			// Values of disposableIncomeUprated are uprated from system year of each policy to each simulated year, instead of one baseline like above
+			/*
+			for (int yearSimulated = Parameters.getMin_Year(); yearSimulated <= Parameters.getMax_Year(); yearSimulated++) {
+				double upratingFactor = (double) Parameters.upratingFactorsMap.get(yearSimulated, policyName); //Get uprating factor for a given simulated year and given policy
+				disposableIncomeUprated.put(yearSimulated, policyName, sumOfOccupantsMonthlyDisposableIncome.get(policyName)*upratingFactor); //Disposable income for a given policy uprated to each possible simulated year
+			}
+			 */
+
 			//Earnings are independent of the policy so enough to keep in a double => Not anymore, all the monetary variables are policy-dependent now
 //			grossEarnings = sumOfOccupantsMonthlyGrossEarnings;
-			grossEarnings.put(policyName, sumOfOccupantsMonthlyGrossEarnings.get(policyName)*deflatorCPI);
+			grossEarnings.put(policyName, sumOfOccupantsMonthlyGrossEarnings.get(policyName));
+
+			grossIncome.put(policyName, sumOfOccupantsMonthlyOriginalIncome.get(policyName));
 			
 //			System.out.println("Donor HHID " + getKey().getId() + "Policy name: " + policyName + "Sum of occupants monthly disposable income " + sumOfOccupantsMonthlyDisposableIncome.get(policyName) + "Sum of occupants earnings " + sumOfOccupantsMonthlyGrossEarnings + "Sum of occupants monthly original income " + sumOfOccupantsMonthlyOriginalIncome + 
 //					"dispIncomeToGrossEarningsRatio " + disposableIncomeToGrossEarningsRatio.get(policyName) + "dispToGrossIncomeRatio " + disposableToGrossIncomeRatio.get(policyName) + "Number of occupants " + occupants.size());
@@ -777,14 +798,16 @@ public class DonorHousehold {
 		return occupancy;
 	}
 
-//	public double getDisposableToGrossIncomeRatio(String euromodPolicyYear) {
-//		return disposableToGrossIncomeRatio.get(euromodPolicyYear);
-//	}
-//
-//	public double getDisposableToGrossIncomeRatio() {
-//		return disposableToGrossIncomeRatio.get(model.getEUROMODpolicyNameForThisYear());
-//	}
-	
+
+	public double getDisposableToGrossIncomeRatio(String euromodPolicyYear) {
+		return disposableToGrossIncomeRatio.get(euromodPolicyYear);
+	}
+
+	public double getDisposableToGrossIncomeRatio() {
+		return disposableToGrossIncomeRatio.get(model.getLabourMarket().getEUROMODpolicyNameForThisYear());
+	}
+
+
 	public double getDisposableIncomeToGrossEarningsRatio(String euromodPolicyYear) {
 		return disposableIncomeToGrossEarningsRatio.get(euromodPolicyYear);
 	}
@@ -793,18 +816,41 @@ public class DonorHousehold {
 		return disposableIncomeToGrossEarningsRatio.get(model.getLabourMarket().getEUROMODpolicyNameForThisYear());
 	}
 	
-	public double getDisposableIncome(String euromodPolicyYear) {
-		return disposableIncome.get(euromodPolicyYear);
+	public double getDisposableIncome(String euromodPolicyName) {
+		return disposableIncome.get(euromodPolicyName);
 	}
-	
+
+	public double getGrossEarnings(String euromodPolicyName) {
+		 return grossEarnings.get(euromodPolicyName);
+	}
+
+	public double getGrossIncome(String euromodPolicyYear) {
+		return grossIncome.get(euromodPolicyYear);
+	}
+
+	/*
 	public double getDisposableIncome() {
 		return disposableIncome.get(model.getLabourMarket().getEUROMODpolicyNameForThisYear());
 	}
-	
-	public double getGrossEarnings() {
-		return grossEarnings.get(model.getLabourMarket().getEUROMODpolicyNameForThisYear());
+	*/
+
+	public double getUpratingFactor() {
+		return (double) Parameters.upratingFactorsMap.get(model.getYear(), model.getLabourMarket().getEUROMODpolicyNameForThisYear()); //Get uprating factor for a given simulated year and policy that applies in that year
 	}
-	
+
+	public double getDisposableIncome() {
+		return getDisposableIncome(model.getLabourMarket().getEUROMODpolicyNameForThisYear())*getUpratingFactor();
+	}
+
+	public double getGrossEarnings() {
+		return getGrossEarnings(model.getLabourMarket().getEUROMODpolicyNameForThisYear())*getUpratingFactor();
+	}
+
+	public double getGrossIncome() {
+     	return getGrossIncome(model.getLabourMarket().getEUROMODpolicyNameForThisYear())*getUpratingFactor();
+	}
+
+
 	public Set<DonorPerson> getOccupants() {
 		return occupants;
 	}
